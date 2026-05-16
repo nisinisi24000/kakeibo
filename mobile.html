@@ -67,7 +67,25 @@ tbody td{padding:7px 8px;border-bottom:1px solid #f5f5f5}
 .list-date{white-space:nowrap;color:#888;font-size:11px}
 .list-cat{color:#888;font-size:11px}
 .view-hidden{display:none}
-.trend-svg-wrap{width:100%;overflow:hidden}
+.trend-svg-wrap{width:100%;overflow:hidden;position:relative}
+.trend-controls{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;align-items:center}
+.trend-ctrl-group{display:flex;align-items:center;gap:3px}
+.trend-ctrl-label{font-size:10px;color:#666}
+.trend-sel{padding:3px 6px;border-radius:5px;border:1px solid #ddd;font-size:11px;background:#fff;cursor:pointer}
+.trend-avg-hint{font-size:9px;color:#aaa}
+.trend-cb-wrap{margin:8px 0;display:flex;flex-wrap:wrap;gap:4px;padding:6px;background:#f8f8f8;border-radius:6px;border:1px solid #eee}
+.trend-cb-btn-row{width:100%;display:flex;gap:4px;margin-bottom:3px}
+.trend-cat-all-btn{font-size:10px;padding:3px 7px;border-radius:4px;border:1px solid #ddd;background:#fff;cursor:pointer;color:#555}
+.trend-cb-label{display:flex;align-items:center;gap:3px;font-size:11px;cursor:pointer;background:#fff;padding:2px 6px;border-radius:4px;border:1px solid #e0e0e0;user-select:none}
+.trend-cb-label input{cursor:pointer;margin:0}
+.trend-cb-sw{width:7px;height:7px;border-radius:2px;flex-shrink:0;pointer-events:none}
+.trend-svg-el{width:100%;height:auto;display:block}
+.trend-tooltip{position:absolute;pointer-events:none;background:rgba(20,20,20,0.92);color:#fff;padding:5px 8px;border-radius:5px;font-size:11px;line-height:1.4;display:none;z-index:10;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.2);transform:translate(-50%,calc(-100% - 6px))}
+.trend-summary{width:100%;border-collapse:collapse;font-size:11px;margin-top:12px}
+.trend-summary thead tr{background:#f8f8f8;font-size:10px;color:#888}
+.trend-summary th{padding:5px 8px;font-weight:600}
+.trend-summary td{padding:5px 8px;border-bottom:1px solid #f5f5f5}
+.trend-summary-sw{display:inline-block;width:7px;height:7px;border-radius:2px;margin-right:4px;vertical-align:middle}
 /* モーダル - スマホ用シートスタイル */
 .modal-overlay{position:fixed;inset:0;z-index:1000;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,0.45)}
 .modal-overlay.modal-open{display:flex}
@@ -220,7 +238,12 @@ let allData=[],currentTab='category',currentMonth='all',currentSource='all';
 let currentRatioNum=6,currentRatioDen=16,accessToken=null;
 
 function fmt(n){return(n<0?'-':'')+'¥'+Math.abs(Math.round(n)).toLocaleString('ja-JP');}
-function fmtM(n){return'¥'+(n/10000).toFixed(0)+'万';}
+function fmtM(n,maxVal){
+  const m=Math.abs(maxVal!=null?maxVal:n);
+  if(m>=100000) return '¥'+Math.round(n/10000).toLocaleString('ja-JP')+'万';
+  if(m>=10000) return '¥'+(n/10000).toFixed(1)+'万';
+  return '¥'+Math.round(n).toLocaleString('ja-JP');
+}
 
 // ===== Google Drive =====
 function googleLogin(){
@@ -579,41 +602,318 @@ function showEditForm(r,tr,btn){
   editRow.appendChild(editCell);tr.insertAdjacentElement('afterend',editRow);btn.textContent='✖️';
 }
 
-// ===== 月次推移 =====
+// ===== 月次推移（PC版と同等：モード/粒度/平均/ツールチップ） =====
+function getTrendRows(){
+  let rows=allData.filter(r=>r.excluded!==true);
+  if(currentSource!=='all') rows=rows.filter(r=>r.source===currentSource);
+  const ratio=currentRatioNum/currentRatioDen;
+  rows=rows.map(function(r){
+    if(r.source!=='family') return r;
+    return Object.assign({},r,{ratio,effectiveAmount:r.isIncome?r.amount:Math.round(r.amount*ratio)});
+  });
+  return rows;
+}
+
 function renderTrend(){
-  const months=[...new Set(allData.map(r=>r.month))].sort();
-  const iVals=months.map(m=>Math.round(allData.filter(r=>r.month===m&&r.isIncome).reduce((s,r)=>s+r.effectiveAmount,0)));
-  const eVals=months.map(m=>Math.round(allData.filter(r=>r.month===m&&!r.isIncome).reduce((s,r)=>s+r.effectiveAmount,0)));
-  const maxVal=Math.max(...iVals,...eVals,1);
-  const W=600,H=180,pL=50,pR=10,pT=10,pB=28;
-  const cW=W-pL-pR,cH=H-pT-pB;
-  const n=months.length||1;const bW=Math.min(18,(cW/n)*0.3);const gap=cW/n;
-  const svgNS='http://www.w3.org/2000/svg';
-  const container=document.getElementById('trend-chart');container.innerHTML='';
-  const svg=document.createElementNS(svgNS,'svg');
-  svg.setAttribute('viewBox','0 0 '+W+' '+H);svg.setAttribute('width','100%');svg.setAttribute('height',H);
-  [0,0.5,1].forEach(function(f){
-    const y=pT+cH*(1-f);
-    const line=document.createElementNS(svgNS,'line');
-    line.setAttribute('x1',pL);line.setAttribute('y1',y);line.setAttribute('x2',W-pR);line.setAttribute('y2',y);
-    line.setAttribute('stroke','#eee');line.setAttribute('stroke-width','1');svg.appendChild(line);
-    if(f>0){const text=document.createElementNS(svgNS,'text');text.setAttribute('x',pL-4);text.setAttribute('y',y+3);text.setAttribute('text-anchor','end');text.setAttribute('font-size','9');text.setAttribute('fill','#aaa');text.textContent=fmtM(maxVal*f);svg.appendChild(text);}
+  const container=document.getElementById('trend-chart');
+  container.innerHTML='';
+
+  // コントロールUI: 表示モード / 粒度 / 平均
+  const ctrl=document.createElement('div');ctrl.className='trend-controls';
+
+  const modeWrap=document.createElement('div');modeWrap.className='trend-ctrl-group';
+  const modeLabel=document.createElement('span');modeLabel.className='trend-ctrl-label';modeLabel.textContent='表示:';
+  const modeSel=document.createElement('select');modeSel.id='trend-mode-sel';modeSel.className='trend-sel';
+  [['total','収支合計'],['cat_exp','支出カテゴリ別'],['cat_inc','収入カテゴリ別']].forEach(function(o){
+    const opt=document.createElement('option');opt.value=o[0];opt.textContent=o[1];modeSel.appendChild(opt);
   });
-  months.forEach(function(m,i){
-    const x=pL+gap*i+gap/2;
-    const iH=Math.max((iVals[i]/maxVal)*cH,0);const eH=Math.max((eVals[i]/maxVal)*cH,0);
-    if(iH>0){const r=document.createElementNS(svgNS,'rect');r.setAttribute('x',x-bW-1);r.setAttribute('y',pT+cH-iH);r.setAttribute('width',bW);r.setAttribute('height',iH);r.setAttribute('fill','#1D9E75');r.setAttribute('rx','2');svg.appendChild(r);}
-    if(eH>0){const r=document.createElementNS(svgNS,'rect');r.setAttribute('x',x+1);r.setAttribute('y',pT+cH-eH);r.setAttribute('width',bW);r.setAttribute('height',eH);r.setAttribute('fill','#D85A30');r.setAttribute('rx','2');svg.appendChild(r);}
-    const txt=document.createElementNS(svgNS,'text');txt.setAttribute('x',x);txt.setAttribute('y',pT+cH+16);txt.setAttribute('text-anchor','middle');txt.setAttribute('font-size','8');txt.setAttribute('fill','#888');txt.textContent=m.slice(5);svg.appendChild(txt);
+  modeWrap.appendChild(modeLabel);modeWrap.appendChild(modeSel);
+
+  const grainWrap=document.createElement('div');grainWrap.className='trend-ctrl-group';grainWrap.id='trend-grain-wrap';
+  const grainLabel=document.createElement('span');grainLabel.className='trend-ctrl-label';grainLabel.textContent='粒度:';
+  const grainSel=document.createElement('select');grainSel.id='trend-grain-sel';grainSel.className='trend-sel';
+  [['cat','大項目'],['subcat','中項目']].forEach(function(o){
+    const opt=document.createElement('option');opt.value=o[0];opt.textContent=o[1];grainSel.appendChild(opt);
   });
-  container.appendChild(svg);
-  const leg=document.createElement('div');leg.className='legend';
-  [{c:'#1D9E75',l:'収入'},{c:'#D85A30',l:'支出'}].forEach(function(item){
-    const sp=document.createElement('span');sp.className='leg-item';
-    const sw=document.createElement('span');sw.className='leg-swatch';sw.style.background=item.c;
-    sp.appendChild(sw);sp.appendChild(document.createTextNode(item.l));leg.appendChild(sp);
+  grainWrap.appendChild(grainLabel);grainWrap.appendChild(grainSel);
+
+  const avgWrap=document.createElement('div');avgWrap.className='trend-ctrl-group';
+  const avgLabel=document.createElement('span');avgLabel.className='trend-ctrl-label';avgLabel.textContent='平均:';
+  const avgSel=document.createElement('select');avgSel.id='trend-avg-sel';avgSel.className='trend-sel';
+  [['0','表示なし'],['3','直近3ヶ月'],['6','直近6ヶ月'],['12','直近12ヶ月'],['all','全期間']].forEach(function(o){
+    const opt=document.createElement('option');opt.value=o[0];opt.textContent=o[1];
+    if(o[0]==='6') opt.selected=true;
+    avgSel.appendChild(opt);
   });
-  container.appendChild(leg);
+  const avgHint=document.createElement('span');avgHint.className='trend-avg-hint';avgHint.textContent='(最新月除く)';
+  avgWrap.appendChild(avgLabel);avgWrap.appendChild(avgSel);avgWrap.appendChild(avgHint);
+
+  ctrl.appendChild(modeWrap);ctrl.appendChild(grainWrap);ctrl.appendChild(avgWrap);
+  container.appendChild(ctrl);
+
+  const chartArea=document.createElement('div');chartArea.id='trend-chart-area';
+  container.appendChild(chartArea);
+
+  // ツールチップ要素
+  const tooltip=document.createElement('div');tooltip.className='trend-tooltip';
+  container.appendChild(tooltip);
+  function attachTooltip(el,text){
+    el.style.cursor='pointer';
+    function show(e){
+      tooltip.style.display='block';
+      tooltip.innerHTML=text.replace(/\n/g,'<br>');
+      const rect=container.getBoundingClientRect();
+      const touch=(e.touches&&e.touches[0])||e;
+      tooltip.style.left=(touch.clientX-rect.left)+'px';
+      tooltip.style.top=(touch.clientY-rect.top)+'px';
+    }
+    el.addEventListener('mouseenter',show);
+    el.addEventListener('mousemove',show);
+    el.addEventListener('mouseleave',function(){tooltip.style.display='none';});
+    el.addEventListener('touchstart',show,{passive:true});
+  }
+
+  function drawTrend(){
+    const cbWrapExisting=chartArea.querySelector('.trend-cb-wrap');
+    if(cbWrapExisting) cbWrapExisting.remove();
+    chartArea.innerHTML='';
+    if(cbWrapExisting) chartArea.appendChild(cbWrapExisting);
+    const mode=modeSel.value;
+    const grain=grainSel.value;
+    grainWrap.style.display=mode==='total'?'none':'flex';
+
+    const rows=getTrendRows();
+    const months=[...new Set(allData.map(r=>r.month))].sort();
+    if(!months.length){chartArea.textContent='データがありません';return;}
+
+    // 平均値計算（最新月除く）
+    const avgPeriod=avgSel.value;
+    function avg(arr){
+      if(avgPeriod==='0'||!arr||months.length<=1) return null;
+      const eligible=arr.slice(0,-1);
+      if(!eligible.length) return null;
+      const slice=avgPeriod==='all'?eligible:eligible.slice(-parseInt(avgPeriod));
+      if(!slice.length) return null;
+      return Math.round(slice.reduce((s,v)=>s+v,0)/slice.length);
+    }
+
+    const svgNS='http://www.w3.org/2000/svg';
+    const W=600,H=220,pL=56,pR=14,pT=14,pB=34;
+    const cW=W-pL-pR,cH=H-pT-pB;
+    const n=months.length||1;
+    const gap=cW/n;
+
+    if(mode==='total'){
+      const bW=Math.min(22,gap*0.3);
+      const iVals=months.map(m=>Math.round(rows.filter(r=>r.month===m&&r.isIncome).reduce((s,r)=>s+r.effectiveAmount,0)));
+      const eVals=months.map(m=>Math.round(rows.filter(r=>r.month===m&&!r.isIncome).reduce((s,r)=>s+r.effectiveAmount,0)));
+      const maxVal=Math.max(...iVals,...eVals,1);
+      const svg=makeSvg(svgNS,W,H);
+      drawGrid(svg,svgNS,maxVal,W,H,pL,pR,pT,pB,cW,cH);
+      months.forEach(function(m,i){
+        const x=pL+gap*i+gap/2;
+        const iH=Math.max((iVals[i]/maxVal)*cH,0);
+        const eH=Math.max((eVals[i]/maxVal)*cH,0);
+        if(iH>0){const r=mkRect(svgNS,x-bW-2,pT+cH-iH,bW,iH,'#1D9E75');attachTooltip(r,m+'\n収入: '+fmt(iVals[i]));svg.appendChild(r);}
+        if(eH>0){const r=mkRect(svgNS,x+2,pT+cH-eH,bW,eH,'#D85A30');attachTooltip(r,m+'\n支出: '+fmt(eVals[i]));svg.appendChild(r);}
+        drawLabel(svg,svgNS,x,pT+cH+18,m.slice(5));
+      });
+      // 平均破線
+      const avgI=avg(iVals);
+      const avgE=avg(eVals);
+      [{val:avgI,color:'#1D9E75'},{val:avgE,color:'#D85A30'}].forEach(function(a){
+        if(a.val==null) return;
+        const y=pT+cH-(a.val/maxVal)*cH;
+        const line=document.createElementNS(svgNS,'line');
+        line.setAttribute('x1',pL);line.setAttribute('y1',y);
+        line.setAttribute('x2',W-pR);line.setAttribute('y2',y);
+        line.setAttribute('stroke',a.color);line.setAttribute('stroke-width','1.5');
+        line.setAttribute('stroke-dasharray','5 4');line.setAttribute('opacity','0.85');
+        svg.appendChild(line);
+      });
+      chartArea.appendChild(svg);
+      const legItems=[
+        {c:'#1D9E75',l:'収入'+(avgI!=null?' (平均 '+fmt(avgI)+')':'')},
+        {c:'#D85A30',l:'支出'+(avgE!=null?' (平均 '+fmt(avgE)+')':'')}
+      ];
+      drawLegend(chartArea,legItems);
+    } else {
+      // カテゴリ別折れ線
+      const isIncome=mode==='cat_inc';
+      const catRows=rows.filter(r=>!!r.isIncome===isIncome);
+      const catKeys=new Set();
+      catRows.forEach(r=>{const k=grain==='subcat'&&r.subcat?r.cat+' > '+r.subcat:r.cat;catKeys.add(k);});
+      const cats=[...catKeys].sort();
+      const colors=cats.map((_,i)=>CAT_COLORS[i%CAT_COLORS.length]);
+
+      const catVals={};
+      cats.forEach(function(c){
+        catVals[c]=months.map(function(m){
+          return Math.round(catRows.filter(r=>{
+            const k=grain==='subcat'&&r.subcat?r.cat+' > '+r.subcat:r.cat;
+            return r.month===m&&k===c;
+          }).reduce((s,r)=>s+r.effectiveAmount,0));
+        });
+      });
+
+      // チェックボックスエリア
+      let cbWrap=chartArea.querySelector('.trend-cb-wrap');
+      const prevCats=cbWrap?[...cbWrap.querySelectorAll('input')].map(i=>i.value).join(','):'';
+      if(!cbWrap||prevCats!==cats.join(',')){
+        if(cbWrap) cbWrap.remove();
+        cbWrap=document.createElement('div');cbWrap.className='trend-cb-wrap';
+        const btnRow=document.createElement('div');btnRow.className='trend-cb-btn-row';
+        const allBtn=document.createElement('button');allBtn.textContent='全選択';allBtn.className='trend-cat-all-btn';
+        const noneBtn=document.createElement('button');noneBtn.textContent='全解除';noneBtn.className='trend-cat-all-btn';
+        allBtn.addEventListener('click',function(){cbWrap.querySelectorAll('input').forEach(cb=>cb.checked=true);drawChart();});
+        noneBtn.addEventListener('click',function(){cbWrap.querySelectorAll('input').forEach(cb=>cb.checked=false);drawChart();});
+        btnRow.appendChild(allBtn);btnRow.appendChild(noneBtn);cbWrap.appendChild(btnRow);
+        cats.forEach(function(c,i){
+          const label=document.createElement('label');label.className='trend-cb-label';
+          const cb=document.createElement('input');cb.type='checkbox';cb.value=c;cb.checked=true;
+          cb.addEventListener('change',drawChart);
+          const sw=document.createElement('span');sw.className='trend-cb-sw';sw.style.background=colors[i];
+          label.appendChild(cb);label.appendChild(sw);label.appendChild(document.createTextNode(c));
+          cbWrap.appendChild(label);
+        });
+        chartArea.insertBefore(cbWrap,chartArea.firstChild);
+      }
+
+      function drawChart(){
+        [...chartArea.children].forEach(function(el){if(!el.classList.contains('trend-cb-wrap'))el.remove();});
+        const selectedCats=[...cbWrap.querySelectorAll('input:checked')].map(cb=>cb.value);
+        if(!selectedCats.length) return;
+        const maxVal=Math.max(...selectedCats.map(c=>catVals[c]||[0]).flat(),1);
+        const svg=makeSvg(svgNS,W,H);
+        drawGrid(svg,svgNS,maxVal,W,H,pL,pR,pT,pB,cW,cH);
+
+        selectedCats.forEach(function(cat){
+          const ci=cats.indexOf(cat);if(ci<0)return;
+          const pts=months.map(function(m,i){
+            const x=pL+gap*i+gap/2;
+            const y=pT+cH-Math.max((catVals[cat][i]/maxVal)*cH,0);
+            return x+','+y;
+          });
+          const polyline=document.createElementNS(svgNS,'polyline');
+          polyline.setAttribute('points',pts.join(' '));
+          polyline.setAttribute('fill','none');
+          polyline.setAttribute('stroke',colors[ci]);
+          polyline.setAttribute('stroke-width','2');
+          polyline.setAttribute('stroke-linejoin','round');
+          svg.appendChild(polyline);
+          // 平均破線
+          const aVal=avg(catVals[cat]);
+          if(aVal!=null&&maxVal>0){
+            const ay=pT+cH-(aVal/maxVal)*cH;
+            const aline=document.createElementNS(svgNS,'line');
+            aline.setAttribute('x1',pL);aline.setAttribute('y1',ay);
+            aline.setAttribute('x2',W-pR);aline.setAttribute('y2',ay);
+            aline.setAttribute('stroke',colors[ci]);
+            aline.setAttribute('stroke-width','1');
+            aline.setAttribute('stroke-dasharray','4 4');
+            aline.setAttribute('opacity','0.55');
+            svg.appendChild(aline);
+          }
+          months.forEach(function(m,i){
+            const val=catVals[cat][i];
+            if(val>0){
+              const x=pL+gap*i+gap/2;
+              const y=pT+cH-(val/maxVal)*cH;
+              const circle=document.createElementNS(svgNS,'circle');
+              circle.setAttribute('cx',x);circle.setAttribute('cy',y);circle.setAttribute('r','4');
+              circle.setAttribute('fill',colors[ci]);
+              attachTooltip(circle,cat+'\n'+m+': '+fmt(val));
+              svg.appendChild(circle);
+            }
+          });
+        });
+        months.forEach(function(m,i){drawLabel(svg,svgNS,pL+gap*i+gap/2,pT+cH+18,m.slice(5));});
+        chartArea.appendChild(svg);
+        drawLegend(chartArea,selectedCats.map(function(c){return {c:colors[cats.indexOf(c)],l:c};}));
+
+        // サマリーテーブル
+        const totalBycat={};cats.forEach(c=>{totalBycat[c]=catVals[c].reduce((s,v)=>s+v,0);});
+        const grandTotal=selectedCats.reduce((s,c)=>s+(totalBycat[c]||0),0);
+        const showAvgCol=avgPeriod!=='0';
+        const tbl=document.createElement('table');tbl.className='trend-summary';
+        const thead=document.createElement('thead');const htr=document.createElement('tr');
+        const headers=showAvgCol?['カテゴリ','合計','平均','割合']:['カテゴリ','合計','割合'];
+        headers.forEach(function(l,i){
+          const th=document.createElement('th');
+          th.style.textAlign=i===0?'left':'right';
+          th.textContent=l;htr.appendChild(th);
+        });
+        thead.appendChild(htr);tbl.appendChild(thead);
+        const tbody=document.createElement('tbody');
+        [...selectedCats].sort((a,b)=>(totalBycat[b]||0)-(totalBycat[a]||0)).forEach(function(c){
+          const tr=document.createElement('tr');
+          const pct=grandTotal?(totalBycat[c]/grandTotal*100).toFixed(1):0;
+          const td1=document.createElement('td');
+          const sw=document.createElement('span');sw.className='trend-summary-sw';sw.style.background=colors[cats.indexOf(c)];
+          td1.appendChild(sw);td1.appendChild(document.createTextNode(c));
+          const td2=document.createElement('td');td2.style.textAlign='right';td2.style.fontWeight='600';td2.textContent=fmt(totalBycat[c]||0);
+          tr.appendChild(td1);tr.appendChild(td2);
+          if(showAvgCol){
+            const avgC=avg(catVals[c]);
+            const tdA=document.createElement('td');tdA.style.textAlign='right';tdA.style.color='#444';
+            tdA.textContent=avgC!=null?fmt(avgC):'-';
+            tr.appendChild(tdA);
+          }
+          const td3=document.createElement('td');td3.style.textAlign='right';td3.style.color='#888';td3.textContent=pct+'%';
+          tr.appendChild(td3);tbody.appendChild(tr);
+        });
+        tbl.appendChild(tbody);chartArea.appendChild(tbl);
+      }
+      drawChart();
+    }
+  }
+
+  // ヘルパー
+  function makeSvg(ns,W,H){
+    const svg=document.createElementNS(ns,'svg');
+    svg.setAttribute('viewBox','0 0 '+W+' '+H);
+    svg.setAttribute('width',W);svg.setAttribute('height',H);
+    svg.setAttribute('class','trend-svg-el');
+    return svg;
+  }
+  function drawGrid(svg,ns,maxVal,W,H,pL,pR,pT,pB,cW,cH){
+    [0,0.25,0.5,0.75,1].forEach(function(f){
+      const y=pT+cH*(1-f);
+      const line=document.createElementNS(ns,'line');
+      line.setAttribute('x1',pL);line.setAttribute('y1',y);line.setAttribute('x2',W-pR);line.setAttribute('y2',y);
+      line.setAttribute('stroke','#eee');line.setAttribute('stroke-width','1');svg.appendChild(line);
+      if(f>0){
+        const text=document.createElementNS(ns,'text');
+        text.setAttribute('x',pL-5);text.setAttribute('y',y+3);
+        text.setAttribute('text-anchor','end');text.setAttribute('font-size','10');text.setAttribute('fill','#aaa');
+        text.textContent=fmtM(maxVal*f,maxVal);svg.appendChild(text);
+      }
+    });
+  }
+  function mkRect(ns,x,y,w,h,fill){
+    const r=document.createElementNS(ns,'rect');
+    r.setAttribute('x',x);r.setAttribute('y',y);r.setAttribute('width',w);r.setAttribute('height',h);
+    r.setAttribute('fill',fill);r.setAttribute('rx','2');return r;
+  }
+  function drawLabel(svg,ns,x,y,text){
+    const t=document.createElementNS(ns,'text');
+    t.setAttribute('x',x);t.setAttribute('y',y);t.setAttribute('text-anchor','middle');
+    t.setAttribute('font-size','10');t.setAttribute('fill','#888');t.textContent=text;svg.appendChild(t);
+  }
+  function drawLegend(container,items){
+    const leg=document.createElement('div');leg.className='legend';leg.style.flexWrap='wrap';
+    items.forEach(function(item){
+      const sp=document.createElement('span');sp.className='leg-item';
+      const sw=document.createElement('span');sw.className='leg-swatch';sw.style.background=item.c;
+      sp.appendChild(sw);sp.appendChild(document.createTextNode(item.l));leg.appendChild(sp);
+    });
+    container.appendChild(leg);
+  }
+
+  modeSel.addEventListener('change',drawTrend);
+  grainSel.addEventListener('change',drawTrend);
+  avgSel.addEventListener('change',drawTrend);
+  drawTrend();
 }
 
 // ===== 明細一覧 =====
