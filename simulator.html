@@ -6,7 +6,6 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="資産シミュレーター">
 <title>資産シミュレーター</title>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;font-size:13px;color:#1a1a1a;background:#f5f5f5;min-height:100vh}
@@ -16,35 +15,10 @@ h1{font-size:19px;font-weight:700;margin-bottom:2px}
 .card{background:#fff;border-radius:12px;border:1px solid #eee;padding:14px;margin-bottom:10px}
 .header-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 .refresh-btn{font-size:12px;color:#2563eb;background:none;border:none;cursor:pointer;padding:0}
-.login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:90vh;gap:18px;text-align:center;padding:24px}
-.login-title{font-size:22px;font-weight:700}
-.login-desc{font-size:13px;color:#666;line-height:1.6}
-.google-btn{display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid #ddd;border-radius:10px;padding:12px 22px;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08)}
 .status-bar{padding:8px 12px;border-radius:8px;font-size:12px;margin-bottom:10px;display:none}
 .status-bar.ok{background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;display:block}
 .status-bar.err{background:#fef2f2;color:#991b1b;border:1px solid #fecaca;display:block}
 .status-bar.loading{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;display:block}
-.import-box{width:100%;max-width:380px;border:1.5px solid #e5e7eb;border-radius:14px;padding:16px;background:#fafafa}
-.import-box-title{font-size:14px;font-weight:700;margin-bottom:6px}
-.import-box-desc{font-size:11px;color:#888;line-height:1.6;margin-bottom:12px}
-.import-type{display:flex;gap:8px;margin-bottom:10px}
-.import-type-btn{flex:1;padding:8px 0;border:1.5px solid #ddd;border-radius:8px;background:#fff;cursor:pointer;font-size:13px;color:#555;transition:all .15s}
-.import-type-btn.active{border-color:#2563eb;background:#eff6ff;color:#1d4ed8;font-weight:600}
-.import-ratio-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-.import-ratio-row label{font-size:12px;color:#666;flex:1;text-align:left}
-.import-ratio-row input{width:50px;padding:5px 6px;border:1px solid #ddd;border-radius:6px;font-size:13px;text-align:center}
-.import-ratio-pct{font-size:13px;font-weight:600;color:#2563eb;min-width:46px}
-.csv-drop{display:flex;flex-direction:column;align-items:center;gap:6px;padding:20px 12px;border:2px dashed #cbd5e1;border-radius:10px;background:#fff;cursor:pointer;transition:all .15s}
-.csv-drop:hover,.csv-drop.dragover{border-color:#2563eb;background:#eff6ff}
-.csv-drop-icon{font-size:28px}
-.csv-drop-text{font-size:13px;font-weight:600;color:#475569;line-height:1.6}
-.csv-drop-text small{font-size:11px;font-weight:400;color:#94a3b8}
-.login-or{font-size:11px;color:#aaa;position:relative}
-.import-summary{width:100%;max-width:380px;text-align:left;font-size:12px;background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;border-radius:10px;padding:10px 12px;display:none}
-.import-summary.show{display:block}
-.import-summary.warn{background:#fffbeb;border-color:#fde68a;color:#92400e}
-.header-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
-.refresh-btn{font-size:12px;color:#2563eb;background:none;border:none;cursor:pointer;padding:0}
 /* 資産シミュレーター（モバイル） */
 .sim-wrap{padding:2px 0}
 .sim-inputs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
@@ -74,19 +48,7 @@ h1{font-size:19px;font-weight:700;margin-bottom:2px}
 </head>
 <body>
 
-<div id="login-screen" class="login-screen">
-  <div style="font-size:44px">📈</div>
-  <div class="login-title">資産シミュレーター</div>
-  <div class="login-desc">あなたの資産がこれからどう推移するかを<br>シミュレーションします</div>
-  <button class="google-btn" id="google-login-btn">
-    <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-    Googleでログインして始める
-  </button>
-  <button class="skip-btn" id="skip-login-btn">ログインせずに使う（保存なし）</button>
-  <div id="login-status" class="status-bar"></div>
-</div>
-
-<div id="main-app" class="app" style="display:none">
+<div id="main-app" class="app">
   <div class="header-row">
     <div><h1>資産シミュレーター</h1><p class="subtitle" id="subtitle">将来の資産を試算します</p></div>
   </div>
@@ -95,11 +57,6 @@ h1{font-size:19px;font-weight:700;margin-bottom:2px}
 </div>
 
 <script>
-const CLIENT_ID='293451920862-fjot50d3g4iac2afqq0eu39ssfggik6a.apps.googleusercontent.com';
-const SCOPES='https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.appdata';
-const SIM_PROFILE_FILE='kakeibo_sim_profiles.json';
-let accessToken=null;
-
 // ライフイベント・月収支データ（外側スコープ）
 let simEvents=[];
 let simEventId=0;
@@ -126,43 +83,9 @@ function mkTd(text,color){
 }
 function getSimVal(id){return parseFloat(document.getElementById(id).value)||0;}
 
-// ===== 画面遷移 =====
+// ===== ステータス表示 =====
 function showStatus(type,msg){const el=document.getElementById('status-bar');if(!el)return;el.className='status-bar '+type;el.textContent=msg;el.style.display=msg?'block':'none';}
-function showLoginScreen(){document.getElementById('login-screen').style.display='flex';document.getElementById('main-app').style.display='none';}
-function showMainApp(){document.getElementById('login-screen').style.display='none';document.getElementById('main-app').style.display='block';}
 
-function simFindDriveFile(){
-  return fetch("https://www.googleapis.com/drive/v3/files?q=name='"+SIM_PROFILE_FILE+"' and trashed=false&spaces=appDataFolder&fields=files(id,name)",
-    {headers:{Authorization:'Bearer '+accessToken}})
-    .then(function(res){return res.json();})
-    .then(function(data){return data.files&&data.files.length?data.files[0]:null;});
-}
-// Driveからプロファイルを読み込む
-function simLoadProfilesFromDrive(){
-  if(!accessToken) return Promise.resolve({});
-  return simFindDriveFile().then(function(file){
-    if(!file) return {};
-    return fetch('https://www.googleapis.com/drive/v3/files/'+file.id+'?alt=media',
-      {headers:{Authorization:'Bearer '+accessToken}})
-      .then(function(res){return res.json();})
-      .then(function(json){return (json&&typeof json==='object')?json:{};});
-  });
-}
-// Driveにプロファイルを保存（新規作成時は appDataFolder に入れる）
-function simSaveProfilesToDrive(profiles){
-  if(!accessToken) return Promise.reject(new Error('未ログイン'));
-  return simFindDriveFile().then(function(file){
-    const blob=new Blob([JSON.stringify(profiles)],{type:'application/json'});
-    const meta=file?{name:SIM_PROFILE_FILE}:{name:SIM_PROFILE_FILE,parents:['appDataFolder']};
-    const form=new FormData();
-    form.append('metadata',new Blob([JSON.stringify(meta)],{type:'application/json'}));
-    form.append('file',blob);
-    const url=file
-      ? 'https://www.googleapis.com/upload/drive/v3/files/'+file.id+'?uploadType=multipart'
-      : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
-    return fetch(url,{method:file?'PATCH':'POST',headers:{Authorization:'Bearer '+accessToken},body:form});
-  });
-}
 // 2つのプロファイル集合をマージ（_savedAt / _deletedAt の新しい方を採用）
 function simMergeProfiles(a,b){
   const names={};
@@ -209,26 +132,14 @@ function renderSim(){
   profBar.appendChild(profSel);profBar.appendChild(profNameInp);profBar.appendChild(profSaveBtn);profBar.appendChild(profDelBtn);
   wrap.appendChild(profBar);
 
-  // プロファイルの読み込み: localStorageキャッシュを即返し、裏でDriveと同期
+  // プロファイルの読み込み（この端末のブラウザに保存）
   function loadProfiles(cb){
-    const local=simLocalGet();
-    cb(simActiveProfiles(local));
-    simLoadProfilesFromDrive().then(function(remote){
-      const merged=simMergeProfiles(local,remote);
-      if(JSON.stringify(merged)!==JSON.stringify(local)){
-        simLocalSet(merged);
-        cb(simActiveProfiles(merged));
-      }
-    }).catch(function(e){console.warn('プロファイルのDrive同期に失敗:',e.message);});
+    cb(simActiveProfiles(simLocalGet()));
   }
-  // プロファイルの保存: localStorageに保存しつつ、Driveにもマージして保存
+  // プロファイルの保存（この端末のブラウザに保存）
   function saveProfiles(profiles,cb){
     simLocalSet(profiles);
     if(cb)cb();
-    simLoadProfilesFromDrive().then(function(remote){
-      const merged=simMergeProfiles(remote,profiles);
-      return simSaveProfilesToDrive(merged).then(function(){simLocalSet(merged);});
-    }).catch(function(e){console.warn('プロファイルのDrive保存に失敗:',e.message);});
   }
   function getSimFields(){
     const fields=['sim-age','sim-retire','sim-cash','sim-invest','sim-monthly','sim-rate','sim-stop-age','sim-drawdown-age','sim-drawdown-rate'];
@@ -1479,41 +1390,9 @@ function runSim(){
   tbl.appendChild(tbody);tblWrap.appendChild(tbl);result.appendChild(tblWrap);
 }
 
-// ===== Googleログイン =====
-function googleLogin(){
-  const st=document.getElementById('login-status');
-  st.className='status-bar loading';st.textContent='Google\u306b\u30ed\u30b0\u30a4\u30f3\u4e2d...';st.style.display='block';
-  if(typeof google==='undefined'||!google.accounts){
-    st.className='status-bar err';st.textContent='Google\u30e9\u30a4\u30d6\u30e9\u30ea\u8aad\u307f\u8fbc\u307f\u4e2d\u3002\u5c11\u3057\u5f85\u3063\u3066\u304b\u3089\u518d\u8a66\u884c\u3057\u3066\u304f\u3060\u3055\u3044\u3002';return;
-  }
-  google.accounts.oauth2.initTokenClient({
-    client_id:CLIENT_ID,scope:SCOPES,
-    callback:function(res){
-      if(res.error){st.className='status-bar err';st.textContent='\u30a8\u30e9\u30fc: '+res.error;return;}
-      accessToken=res.access_token;
-      sessionStorage.setItem('gdrive_token',accessToken);
-      startApp(true);
-    }
-  }).requestAccessToken({prompt:'consent'});
-}
-
-// アプリ開始
-function startApp(loggedIn){
-  showMainApp();
-  const sub=document.getElementById('subtitle');
-  sub.textContent=loggedIn
-    ?'\u30af\u30e9\u30a6\u30c9\u540c\u671f\u3042\u308a\uff1a\u30d7\u30ed\u30d5\u30a1\u30a4\u30eb\u306f\u7aef\u672b\u9593\u3067\u5171\u6709\u3055\u308c\u307e\u3059'
-    :'\u30ed\u30b0\u30a4\u30f3\u306a\u3057\uff1a\u3053\u306e\u7aef\u672b\u306b\u306e\u307f\u4fdd\u5b58\u3055\u308c\u307e\u3059';
-  renderSim();
-}
-
-document.getElementById('google-login-btn').addEventListener('click',googleLogin);
-document.getElementById('skip-login-btn').addEventListener('click',function(){startApp(false);});
-
-// 起動時：トークンがあれば自動で続行
-const _storedToken=sessionStorage.getItem('gdrive_token');
-if(_storedToken){accessToken=_storedToken;startApp(true);}
-else showLoginScreen();
+// ===== 起動 =====
+// プロファイルはこの端末のブラウザに保存されます（ログイン不要）
+renderSim();
 </script>
 </body>
 </html>
