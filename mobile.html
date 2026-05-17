@@ -259,10 +259,73 @@ tbody td{padding:7px 8px;border-bottom:1px solid #f5f5f5}
 const CLIENT_ID='293451920862-fjot50d3g4iac2afqq0eu39ssfggik6a.apps.googleusercontent.com';
 const SCOPES='https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.appdata';
 const DRIVE_FILE_NAME='kakeibo_data.json';
+const SIM_PROFILE_FILE='kakeibo_sim_profiles.json';
 const CAT_COLORS=['#3266ad','#0F6E56','#D85A30','#993556','#885FA5','#BA7517','#639922','#888780','#3C3489','#1D9E75'];
 
 let allData=[],currentTab='category',currentMonth='all',currentSource='all';
 let currentRatioNum=6,currentRatioDen=16,accessToken=null;
+
+// ===== シミュレーション・プロファイルの Google Drive 同期 =====
+// PC拡張機能とiPhoneで同じDriveファイル(kakeibo_sim_profiles.json)を共有して同期する
+
+// Drive上のプロファイルファイルを検索（appDataFolder内＝プロジェクト共有の隠しフォルダ）
+function simFindDriveFile(){
+  return fetch("https://www.googleapis.com/drive/v3/files?q=name='"+SIM_PROFILE_FILE+"' and trashed=false&spaces=appDataFolder&fields=files(id,name)",
+    {headers:{Authorization:'Bearer '+accessToken}})
+    .then(function(res){return res.json();})
+    .then(function(data){return data.files&&data.files.length?data.files[0]:null;});
+}
+// Driveからプロファイルを読み込む
+function simLoadProfilesFromDrive(){
+  if(!accessToken) return Promise.resolve({});
+  return simFindDriveFile().then(function(file){
+    if(!file) return {};
+    return fetch('https://www.googleapis.com/drive/v3/files/'+file.id+'?alt=media',
+      {headers:{Authorization:'Bearer '+accessToken}})
+      .then(function(res){return res.json();})
+      .then(function(json){return (json&&typeof json==='object')?json:{};});
+  });
+}
+// Driveにプロファイルを保存（新規作成時は appDataFolder に入れる）
+function simSaveProfilesToDrive(profiles){
+  if(!accessToken) return Promise.reject(new Error('未ログイン'));
+  return simFindDriveFile().then(function(file){
+    const blob=new Blob([JSON.stringify(profiles)],{type:'application/json'});
+    const meta=file?{name:SIM_PROFILE_FILE}:{name:SIM_PROFILE_FILE,parents:['appDataFolder']};
+    const form=new FormData();
+    form.append('metadata',new Blob([JSON.stringify(meta)],{type:'application/json'}));
+    form.append('file',blob);
+    const url=file
+      ? 'https://www.googleapis.com/upload/drive/v3/files/'+file.id+'?uploadType=multipart'
+      : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+    return fetch(url,{method:file?'PATCH':'POST',headers:{Authorization:'Bearer '+accessToken},body:form});
+  });
+}
+// 2つのプロファイル集合をマージ（_savedAt / _deletedAt の新しい方を採用）
+function simMergeProfiles(a,b){
+  const names={};
+  [a,b].forEach(function(set){Object.keys(set||{}).forEach(function(k){names[k]=true;});});
+  const out={};
+  Object.keys(names).forEach(function(k){
+    const pa=(a&&a[k])||null,pb=(b&&b[k])||null;
+    function stamp(p){if(!p)return -1;return Math.max(p._savedAt||0,p._deletedAt||0);}
+    const winner=stamp(pb)>=stamp(pa)?pb:pa;
+    if(winner) out[k]=winner;
+  });
+  return out;
+}
+// 表示用：削除マーカーを除いた実プロファイルだけを返す
+function simActiveProfiles(profiles){
+  const out={};
+  Object.keys(profiles||{}).forEach(function(k){
+    if(profiles[k]&&!profiles[k]._deletedAt) out[k]=profiles[k];
+  });
+  return out;
+}
+// ローカルキャッシュ（localStorage）の読み書き
+function simLocalGet(){try{return JSON.parse(localStorage.getItem('sim_profiles')||'{}');}catch(e){return {};}}
+function simLocalSet(p){try{localStorage.setItem('sim_profiles',JSON.stringify(p));}catch(e){}}
+
 
 function fmt(n){return(n<0?'-':'')+'¥'+Math.abs(Math.round(n)).toLocaleString('ja-JP');}
 function fmtM(n,maxVal){
@@ -1009,8 +1072,27 @@ function renderSim(){
   profBar.appendChild(profSel);profBar.appendChild(profNameInp);profBar.appendChild(profSaveBtn);profBar.appendChild(profDelBtn);
   wrap.appendChild(profBar);
 
-  function loadProfiles(cb){try{cb(JSON.parse(localStorage.getItem('sim_profiles')||'{}'));}catch(e){cb({});}}
-  function saveProfiles(profiles,cb){try{localStorage.setItem('sim_profiles',JSON.stringify(profiles));}catch(e){}if(cb)cb();}
+  // プロファイルの読み込み: localStorageキャッシュを即返し、裏でDriveと同期
+  function loadProfiles(cb){
+    const local=simLocalGet();
+    cb(simActiveProfiles(local));
+    simLoadProfilesFromDrive().then(function(remote){
+      const merged=simMergeProfiles(local,remote);
+      if(JSON.stringify(merged)!==JSON.stringify(local)){
+        simLocalSet(merged);
+        cb(simActiveProfiles(merged));
+      }
+    }).catch(function(e){console.warn('プロファイルのDrive同期に失敗:',e.message);});
+  }
+  // プロファイルの保存: localStorageに保存しつつ、Driveにもマージして保存
+  function saveProfiles(profiles,cb){
+    simLocalSet(profiles);
+    if(cb)cb();
+    simLoadProfilesFromDrive().then(function(remote){
+      const merged=simMergeProfiles(remote,profiles);
+      return simSaveProfilesToDrive(merged).then(function(){simLocalSet(merged);});
+    }).catch(function(e){console.warn('プロファイルのDrive保存に失敗:',e.message);});
+  }
   function getSimFields(){
     const fields=['sim-age','sim-retire','sim-cash','sim-invest','sim-monthly','sim-rate','sim-stop-age','sim-drawdown-age','sim-drawdown-rate'];
     const obj=fields.reduce(function(o,id){o[id]=document.getElementById(id).value;return o;},{});
@@ -1044,7 +1126,19 @@ function renderSim(){
   profSel.addEventListener('change',function(){const name=profSel.value;if(name)profNameInp.value=name;});
   // 読み込みボタン
 
-  profSaveBtn.addEventListener('click',function(){const name=profNameInp.value.trim();if(!name){alert('プロファイル名を入力してください');return;}loadProfiles(function(profiles){profiles[name]=getSimFields();saveProfiles(profiles,function(){refreshProfSel(profiles,name);profSaveBtn.textContent='✓ 保存済';setTimeout(function(){profSaveBtn.textContent='💾 保存';},1500);});});});
+  profSaveBtn.addEventListener('click',function(){
+    const name=profNameInp.value.trim();
+    if(!name){alert('プロファイル名を入力してください');return;}
+    const profiles=simLocalGet();
+    const fields=getSimFields();
+    fields._savedAt=Date.now();
+    profiles[name]=fields;
+    saveProfiles(profiles,function(){
+      refreshProfSel(simActiveProfiles(profiles),name);
+      profSaveBtn.textContent='✓ 保存済';
+      setTimeout(function(){profSaveBtn.textContent='💾 保存';},1500);
+    });
+  });
   const profLoadBtn=document.createElement('button');profLoadBtn.textContent='📂 読み込み';profLoadBtn.className='sim-btn';profLoadBtn.style.cssText='padding:7px 14px;font-size:12px;background:#6366f1';
   profLoadBtn.addEventListener('click',function(){
     const name=profSel.value;
@@ -1060,7 +1154,17 @@ function renderSim(){
     });
   });
   profBar.appendChild(profLoadBtn);
-  profDelBtn.addEventListener('click',function(){const name=profSel.value;if(!name){alert('削除するプロファイルを選択してください');return;}if(!confirm(name+'を削除しますか？'))return;loadProfiles(function(profiles){delete profiles[name];saveProfiles(profiles,function(){refreshProfSel(profiles,'');profNameInp.value='';});});});
+  profDelBtn.addEventListener('click',function(){
+    const name=profSel.value;
+    if(!name){alert('削除するプロファイルを選択してください');return;}
+    if(!confirm(name+'を削除しますか？'))return;
+    const profiles=simLocalGet();
+    profiles[name]={_deletedAt:Date.now()};
+    saveProfiles(profiles,function(){
+      refreshProfSel(simActiveProfiles(profiles),'');
+      profNameInp.value='';
+    });
+  });
 
   // 家計簿連携セクション
   const linkTitle=document.createElement('div');linkTitle.className='sim-section-title';linkTitle.textContent='🔗 月間収支から現金増加を計算';
