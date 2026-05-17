@@ -260,12 +260,38 @@ select.sim-input{
   background:#fcfaf4;
 }
 
+/* ===== タブバー ===== */
+.sim-tabbar{
+  display:flex;gap:4px;margin-bottom:18px;
+  background:var(--paper);border:1px solid var(--line);
+  border-radius:14px;padding:5px;box-shadow:var(--shadow-sm);
+  position:sticky;top:8px;z-index:20;
+}
+.sim-tab{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:9px 4px;border:none;background:transparent;
+  border-radius:10px;cursor:pointer;font-family:inherit;
+  font-size:11.5px;font-weight:700;color:var(--ink-faint);
+  transition:background .15s,color .15s;letter-spacing:.02em;
+}
+.sim-tab-icon{font-size:15px;line-height:1;font-weight:400}
+.sim-tab.active{background:var(--primary);color:#fff}
+.sim-tab:not(.active):hover{background:var(--primary-tint);color:var(--primary)}
+
+/* ===== タブパネル ===== */
+.sim-panel{display:none}
+.sim-panel.active{display:block;animation:rise .4s cubic-bezier(.2,.7,.2,1) both}
+
 /* ===== スマホ最適化 ===== */
 @media (max-width:430px){
-  .app{padding:18px 13px 48px}
-  h1{font-size:25px}
-  .sim-card-val{font-size:23px}
-  .sim-section-title{font-size:15.5px}
+  .app{padding:16px 12px 44px}
+  h1{font-size:24px}
+  .sim-card-val{font-size:22px}
+  .sim-section-title{font-size:15px}
+  .sim-tab{font-size:11px;padding:8px 2px}
+  .sim-tab-icon{font-size:14px}
+  .sim-inputs{grid-template-columns:1fr 1fr;gap:11px 10px}
+  .sim-money-card,.sim-event-card{padding:14px}
 }
 </style>
 </head>
@@ -347,15 +373,55 @@ function renderSim(){
   container.innerHTML='';
   const wrap=document.createElement('div');wrap.className='sim-wrap';
 
-  const profTitle=document.createElement('div');profTitle.className='sim-section-title';profTitle.textContent='プロファイル';
-  wrap.appendChild(profTitle);
-  const profBar=document.createElement('div');profBar.style.cssText='display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow-sm)';
+  const profBar=document.createElement('div');profBar.style.cssText='display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px;background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:12px;box-shadow:var(--shadow-sm)';
   const profSel=document.createElement('select');profSel.id='sim-prof-sel';profSel.className='sim-input';profSel.style.cssText='flex:1 1 130px;min-width:120px';
   const profNameInp=document.createElement('input');profNameInp.type='text';profNameInp.id='sim-prof-name';profNameInp.className='sim-input';profNameInp.placeholder='プロファイル名';profNameInp.style.cssText='flex:1 1 130px;min-width:120px';
   const profSaveBtn=document.createElement('button');profSaveBtn.textContent='💾 保存';profSaveBtn.className='sim-btn';profSaveBtn.style.cssText='padding:7px 14px;font-size:12px';
   const profDelBtn=document.createElement('button');profDelBtn.textContent='🗑 削除';profDelBtn.className='sim-btn';profDelBtn.style.cssText='padding:9px 16px;font-size:12.5px';profDelBtn.classList.add('sim-btn-danger');
   profBar.appendChild(profSel);profBar.appendChild(profNameInp);profBar.appendChild(profSaveBtn);profBar.appendChild(profDelBtn);
   wrap.appendChild(profBar);
+
+  // ===== タブバー =====
+  const tabBar=document.createElement('div');tabBar.className='sim-tabbar';
+  const tabDefs=[
+    {key:'income',label:'収支',icon:'¥'},
+    {key:'settings',label:'設定',icon:'⚙'},
+    {key:'events',label:'イベント',icon:'★'},
+    {key:'result',label:'結果',icon:'📈'}
+  ];
+  const panels={};
+  const tabBtns={};
+  tabDefs.forEach(function(t){
+    const btn=document.createElement('button');btn.className='sim-tab';btn.dataset.tab=t.key;
+    btn.innerHTML='<span class="sim-tab-icon">'+t.icon+'</span><span>'+t.label+'</span>';
+    btn.addEventListener('click',function(){switchSimTab(t.key);});
+    tabBar.appendChild(btn);tabBtns[t.key]=btn;
+  });
+  wrap.appendChild(tabBar);
+
+  // ===== タブパネル =====
+  const panelWrap=document.createElement('div');panelWrap.className='sim-panels';
+  tabDefs.forEach(function(t){
+    const p=document.createElement('div');p.className='sim-panel';p.dataset.panel=t.key;
+    panelWrap.appendChild(p);panels[t.key]=p;
+  });
+  wrap.appendChild(panelWrap);
+
+  // タブ切り替え
+  let currentSimTab='income';
+  function switchSimTab(key){
+    currentSimTab=key;
+    tabDefs.forEach(function(t){
+      tabBtns[t.key].classList.toggle('active',t.key===key);
+      panels[t.key].classList.toggle('active',t.key===key);
+    });
+    if(key==='result') runSim();
+    // タブ切替時、上部が見えていなければスクロールして見せる
+    if(typeof panelWrap.scrollIntoView==='function'){
+      const top=panelWrap.getBoundingClientRect().top;
+      if(top<0||top>120) panelWrap.scrollIntoView({block:'start',behavior:'smooth'});
+    }
+  }
 
   // プロファイルの読み込み（この端末のブラウザに保存）
   function loadProfiles(cb){
@@ -452,7 +518,7 @@ function renderSim(){
 
   // 月々の収支入力セクション（複数月の実績を入力して平均を算出）
   const linkTitle=document.createElement('div');linkTitle.className='sim-section-title';linkTitle.textContent='毎月の収支';
-  wrap.appendChild(linkTitle);
+  panels.income.appendChild(linkTitle);
 
   const linkCard=document.createElement('div');
   linkCard.className='sim-money-card';
@@ -473,31 +539,31 @@ function renderSim(){
     monthRows.innerHTML='';
     // ヘッダー
     const head=document.createElement('div');
-    head.style.cssText='display:flex;gap:6px;font-size:10px;color:var(--ink-soft);font-weight:700;padding:0 2px;letter-spacing:.03em';
-    head.innerHTML='<div style="flex:1.2">月（任意）</div><div style="flex:1;text-align:right">収入(円)</div><div style="flex:1;text-align:right">支出(円)</div><div style="width:28px"></div>';
+    head.style.cssText='display:flex;gap:5px;font-size:10px;color:var(--ink-soft);font-weight:700;padding:0 2px;letter-spacing:.03em';
+    head.innerHTML='<div style="flex:1 1 0;min-width:0">月</div><div style="flex:1.15 1 0;min-width:0;text-align:right">収入(円)</div><div style="flex:1.15 1 0;min-width:0;text-align:right">支出(円)</div><div style="width:30px;flex-shrink:0"></div>';
     monthRows.appendChild(head);
 
     simMonthData.forEach(function(row,idx){
       const r=document.createElement('div');
-      r.style.cssText='display:flex;gap:6px;align-items:center';
+      r.style.cssText='display:flex;gap:5px;align-items:center;width:100%';
 
       const labelInp=document.createElement('input');labelInp.type='text';labelInp.placeholder='例: 1月';
       labelInp.value=row.label||'';
-      labelInp.style.cssText='flex:1.2;padding:8px 10px;border:1.5px solid var(--line);border-radius:9px;font-size:13px;background:#fcfaf4;font-family:inherit';
+      labelInp.style.cssText='flex:1 1 0;min-width:0;padding:8px 7px;border:1.5px solid var(--line);border-radius:9px;font-size:13px;background:#fcfaf4;font-family:inherit';
       labelInp.addEventListener('input',function(){simMonthData[idx].label=labelInp.value;});
 
       const incInp=document.createElement('input');incInp.type='number';incInp.placeholder='0';
       incInp.value=(row.income!=null?row.income:'');
-      incInp.style.cssText='flex:1;padding:8px 10px;border:1.5px solid var(--line);border-radius:9px;font-size:13px;text-align:right;color:var(--pos);background:#fcfaf4;font-family:inherit;font-variant-numeric:tabular-nums';
+      incInp.style.cssText='flex:1.15 1 0;min-width:0;padding:8px 7px;border:1.5px solid var(--line);border-radius:9px;font-size:13px;text-align:right;color:var(--pos);background:#fcfaf4;font-family:inherit;font-variant-numeric:tabular-nums';
       incInp.addEventListener('input',function(){simMonthData[idx].income=parseFloat(incInp.value)||0;recalcMonthly();});
 
       const expInp=document.createElement('input');expInp.type='number';expInp.placeholder='0';
       expInp.value=(row.expense!=null?row.expense:'');
-      expInp.style.cssText='flex:1;padding:8px 10px;border:1.5px solid var(--line);border-radius:9px;font-size:13px;text-align:right;color:var(--neg);background:#fcfaf4;font-family:inherit;font-variant-numeric:tabular-nums';
+      expInp.style.cssText='flex:1.15 1 0;min-width:0;padding:8px 7px;border:1.5px solid var(--line);border-radius:9px;font-size:13px;text-align:right;color:var(--neg);background:#fcfaf4;font-family:inherit;font-variant-numeric:tabular-nums';
       expInp.addEventListener('input',function(){simMonthData[idx].expense=parseFloat(expInp.value)||0;recalcMonthly();});
 
       const delBtn=document.createElement('button');delBtn.textContent='✕';
-      delBtn.style.cssText='width:32px;height:34px;border:none;background:#f3e3e3;color:var(--neg);border-radius:9px;cursor:pointer;font-size:13px;flex-shrink:0';
+      delBtn.style.cssText='width:30px;height:36px;border:none;background:#f3e3e3;color:var(--neg);border-radius:9px;cursor:pointer;font-size:13px;flex-shrink:0;flex-grow:0';
       delBtn.addEventListener('click',function(){
         if(simMonthData.length<=1){simMonthData[0]={label:'',income:0,expense:0};}
         else{simMonthData.splice(idx,1);}
@@ -555,7 +621,7 @@ function renderSim(){
   linkPeriodInfo.style.cssText='font-size:11px;color:#5f6d68;margin-top:8px;text-align:right';
   linkPeriodInfo.textContent='月を入力すると平均が計算されます';
   linkCard.appendChild(linkPeriodInfo);
-  wrap.appendChild(linkCard);
+  panels.income.appendChild(linkCard);
 
   let _monthlyBalance=0;
 
@@ -603,7 +669,7 @@ function renderSim(){
   simRecalcMonthly=recalcMonthly;
 
   const inputTitle=document.createElement('div');inputTitle.className='sim-section-title';inputTitle.textContent='基本設定';
-  wrap.appendChild(inputTitle);
+  panels.settings.appendChild(inputTitle);
   const grid=document.createElement('div');grid.className='sim-inputs';
   const fields=[
     {id:'sim-age',label:'現在の年齢',placeholder:'例: 35',val:'35'},
@@ -624,10 +690,10 @@ function renderSim(){
     inp.addEventListener('input',runSim);
     g.appendChild(l);g.appendChild(inp);grid.appendChild(g);
   });
-  wrap.appendChild(grid);
+  panels.settings.appendChild(grid);
   // ===== ライフイベントセクション =====
   const evTitle=document.createElement('div');evTitle.className='sim-section-title';evTitle.textContent='ライフイベント';
-  wrap.appendChild(evTitle);
+  panels.events.appendChild(evTitle);
 
   const evDesc=document.createElement('div');evDesc.style.cssText='font-size:11.5px;color:var(--ink-soft);margin-bottom:12px;line-height:1.6';
   evDesc.textContent='現金から引かれるイベントを設定。グラフで「なし」との差額を比較できます。';
@@ -1175,13 +1241,14 @@ function renderSim(){
   evCard.appendChild(evDesc);
   evCard.appendChild(presetBar);
   evCard.appendChild(evList);
-  wrap.appendChild(evCard);
+  panels.events.appendChild(evCard);
 
   const resultArea=document.createElement('div');resultArea.id='sim-result';
-  wrap.appendChild(resultArea);
+  panels.result.appendChild(resultArea);
   container.appendChild(wrap);
   renderEvents();
   runSim();
+  switchSimTab('income');
 }
 
 // ライフイベント関連
