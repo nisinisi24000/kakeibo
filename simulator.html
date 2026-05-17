@@ -5,42 +5,37 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="資産シミュレーター">
-<meta name="theme-color" content="#0f3d3a">
+<meta name="theme-color" content="#2563eb">
 <title>資産シミュレーター</title>
 <style>
 :root{
-  --bg:#f4f1ea;
-  --bg-grad-1:#f6f3ec;
-  --bg-grad-2:#eae6db;
-  --ink:#1c2826;
-  --ink-soft:#5f6d68;
-  --ink-faint:#94a097;
-  --paper:#fffdf8;
-  --line:#e3ddcf;
-  --primary:#0f3d3a;
-  --primary-soft:#1d5c54;
-  --primary-tint:#e6efe9;
-  --accent:#c08a2e;
-  --accent-soft:#e7c98a;
-  --accent-tint:#f6ecd6;
-  --pos:#1d6e4f;
-  --neg:#b03a3a;
-  --shadow-sm:0 1px 2px rgba(28,40,38,.04),0 2px 8px rgba(28,40,38,.05);
-  --shadow-md:0 2px 6px rgba(28,40,38,.06),0 12px 28px rgba(28,40,38,.08);
-  --radius:18px;
-  --radius-sm:12px;
+  --bg:#f5f5f5;
+  --bg-grad-1:#f5f5f5;
+  --bg-grad-2:#f5f5f5;
+  --ink:#1a1a1a;
+  --ink-soft:#666666;
+  --ink-faint:#999999;
+  --paper:#ffffff;
+  --line:#e8e8e8;
+  --primary:#2563eb;
+  --primary-soft:#1d4ed8;
+  --primary-tint:#eff6ff;
+  --accent:#f59e0b;
+  --accent-soft:#fcd34d;
+  --accent-tint:#fef9c3;
+  --pos:#166534;
+  --neg:#991b1b;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.04),0 1px 4px rgba(0,0,0,.05);
+  --shadow-md:0 1px 3px rgba(0,0,0,.06),0 6px 18px rgba(0,0,0,.08);
+  --radius:14px;
+  --radius-sm:10px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
 body{
-  font-family:'Meiryo','メイリオ','Hiragino Sans','ヒラギノ角ゴシック',-apple-system,BlinkMacSystemFont,sans-serif;
+  font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Meiryo',sans-serif;
   font-size:14px;color:var(--ink);
   background:var(--bg);
-  background-image:
-    radial-gradient(120% 80% at 100% 0%,rgba(192,138,46,.07),transparent 60%),
-    radial-gradient(110% 70% at 0% 100%,rgba(15,61,58,.07),transparent 55%),
-    linear-gradient(180deg,var(--bg-grad-1),var(--bg-grad-2));
-  background-attachment:fixed;
   min-height:100vh;
   -webkit-font-smoothing:antialiased;
   line-height:1.55;
@@ -54,8 +49,8 @@ body{
   color:var(--accent);text-transform:uppercase;margin-bottom:6px;
 }
 h1{
-  font-size:27px;font-weight:700;
-  letter-spacing:-.01em;line-height:1.1;color:var(--primary);margin-bottom:5px;
+  font-size:22px;font-weight:700;
+  letter-spacing:-.01em;line-height:1.15;color:var(--ink);margin-bottom:4px;
 }
 .subtitle{font-size:12.5px;color:var(--ink-soft)}
 
@@ -63,23 +58,20 @@ h1{
 .status-bar{padding:9px 14px;border-radius:var(--radius-sm);font-size:12px;margin-bottom:12px;display:none;font-weight:500}
 .status-bar.ok{background:var(--primary-tint);color:var(--primary);display:block}
 .status-bar.err{background:#fbeaea;color:var(--neg);display:block}
-.status-bar.loading{background:var(--accent-tint);color:#8a6420;display:block}
+.status-bar.loading{background:var(--accent-tint);color:#854d0e;display:block}
 
 /* ===== セクション見出し ===== */
 .sim-wrap{display:flex;flex-direction:column}
 .sim-section-title{
-  font-size:16px;font-weight:700;color:var(--primary);
-  margin:26px 0 12px;padding:0;border:none;
-  display:flex;align-items:center;gap:9px;letter-spacing:-.005em;
-}
-.sim-section-title::before{
-  content:"";width:5px;height:20px;border-radius:3px;flex-shrink:0;
-  background:linear-gradient(180deg,var(--accent),var(--accent-soft));
+  font-size:14px;font-weight:700;color:var(--ink);
+  margin:18px 0 10px;padding-bottom:6px;
+  border-bottom:2px solid var(--line);
+  display:flex;align-items:center;gap:6px;
 }
 .sim-wrap > .sim-section-title:first-child{margin-top:4px}
 
-/* セクション本体を擬似カード化（見出しの直後の主要ブロック） */
-.sim-inputs,.sim-result-cards{
+/* 基本設定を白カード化 */
+.sim-inputs{
   background:var(--paper);border:1px solid var(--line);
   border-radius:var(--radius);padding:16px;
   box-shadow:var(--shadow-sm);margin-bottom:8px;
@@ -95,13 +87,13 @@ h1{
 .sim-input{
   padding:9px 11px;border:1.5px solid var(--line);
   border-radius:10px;font-size:14px;width:100%;
-  background:#fcfaf4;color:var(--ink);font-family:inherit;
+  background:#fafafa;color:var(--ink);font-family:inherit;
   transition:border-color .15s,box-shadow .15s,background .15s;
 }
 .sim-input::placeholder{color:var(--ink-faint)}
 .sim-input:focus{
   outline:none;border-color:var(--primary-soft);background:#fff;
-  box-shadow:0 0 0 3px rgba(29,92,84,.1);
+  box-shadow:0 0 0 3px rgba(37,99,235,.12);
 }
 input[type=number].sim-input{font-variant-numeric:tabular-nums}
 
@@ -111,32 +103,25 @@ input[type=number].sim-input{font-variant-numeric:tabular-nums}
   border:none;border-radius:11px;font-size:12.5px;font-weight:700;
   cursor:pointer;font-family:inherit;letter-spacing:.02em;
   transition:transform .12s ease,box-shadow .15s,filter .15s;
-  box-shadow:0 2px 8px rgba(15,61,58,.18);
+  box-shadow:0 1px 4px rgba(37,99,235,.25);
 }
 .sim-btn:hover{filter:brightness(1.08)}
 .sim-btn:active{transform:translateY(1px) scale(.98)}
 
 /* ===== 結果カード ===== */
-.sim-result-cards{display:grid;grid-template-columns:1fr;gap:0;padding:0;overflow:hidden}
+.sim-result-cards{display:grid;grid-template-columns:1fr;gap:8px;padding:0;background:transparent;border:none;box-shadow:none;margin-bottom:14px}
 .sim-card{
-  background:transparent;border-radius:0;padding:16px 18px;text-align:left;
-  border-bottom:1px solid var(--line);
-  display:flex;flex-direction:column;gap:3px;position:relative;
-}
-.sim-card:last-child{border-bottom:none}
-.sim-card::before{
-  content:"";position:absolute;left:0;top:14px;bottom:14px;width:3px;
-  border-radius:0 3px 3px 0;background:var(--accent);opacity:.5;
+  background:#f8f8f8;border-radius:10px;padding:12px 14px;text-align:center;
+  display:flex;flex-direction:column;gap:3px;
 }
 .sim-card-label{
-  font-size:11px;color:var(--ink-soft);font-weight:600;
-  letter-spacing:.04em;order:1;
+  font-size:10px;color:var(--ink-soft);font-weight:500;order:1;
 }
 .sim-card-val{
-  font-size:25px;font-weight:700;
-  letter-spacing:-.01em;order:2;font-variant-numeric:tabular-nums;line-height:1.15;
+  font-size:19px;font-weight:700;
+  order:2;font-variant-numeric:tabular-nums;line-height:1.2;
 }
-.sim-card-sub{font-size:10.5px;color:var(--ink-faint);order:3}
+.sim-card-sub{font-size:10px;color:var(--ink-faint);order:3}
 
 /* ===== グラフ ===== */
 .sim-chart-wrap{
@@ -155,7 +140,7 @@ input[type=number].sim-input{font-variant-numeric:tabular-nums}
 .sim-table{width:100%;border-collapse:collapse;font-size:11px;font-variant-numeric:tabular-nums}
 .sim-table th{
   padding:9px 7px;background:var(--primary);
-  color:#dfe8e2;font-weight:600;text-align:right;
+  color:#fff;font-weight:600;text-align:right;
   white-space:nowrap;font-size:10px;letter-spacing:.02em;
   position:sticky;top:0;
 }
@@ -166,7 +151,7 @@ input[type=number].sim-input{font-variant-numeric:tabular-nums}
 }
 .sim-table tr:last-child td{border-bottom:none}
 .sim-table td:first-child{text-align:left;font-weight:600;color:var(--ink)}
-.sim-table tbody tr:nth-child(even){background:#faf7f0}
+.sim-table tbody tr:nth-child(even){background:#fafafa}
 .sim-table tr.sim-highlight{background:var(--primary-tint)!important;font-weight:700}
 .sim-table tr.sim-highlight td:first-child{color:var(--primary)}
 .sim-table tr.sim-drawdown{background:var(--accent-tint)!important}
@@ -227,7 +212,7 @@ select.sim-input{
 /* ===== チップ（プリセット追加ボタン） ===== */
 .sim-chip{
   padding:7px 13px;font-size:12px;font-weight:600;
-  background:#fcfaf4;color:var(--primary);
+  background:#fafafa;color:var(--primary);
   border:1.5px solid var(--line);border-radius:999px;
   cursor:pointer;font-family:inherit;
   transition:background .14s,border-color .14s,transform .12s;
@@ -240,20 +225,20 @@ select.sim-input{
 .sim-chip-add:hover{background:var(--primary-soft);border-color:var(--primary-soft)}
 
 /* ===== ボタンのバリエーション ===== */
-.sim-btn-danger{background:#fff!important;color:var(--neg)!important;border:1.5px solid #e3c9c9!important;box-shadow:none!important}
-.sim-btn-danger:hover{background:#fbeaea!important;filter:none}
-.sim-btn-accent{background:linear-gradient(135deg,var(--accent),#a8761f)!important;box-shadow:0 2px 8px rgba(192,138,46,.28)!important}
+.sim-btn-danger{background:#fff!important;color:var(--neg)!important;border:1.5px solid #f0c4c4!important;box-shadow:none!important}
+.sim-btn-danger:hover{background:#fef2f2!important;filter:none}
+.sim-btn-accent{background:#6366f1!important;box-shadow:0 1px 4px rgba(99,102,241,.28)!important}
 
 /* ===== 月収支入力カード ===== */
 .sim-money-card{
-  background:linear-gradient(160deg,#fffdf8,#f3efe3);
+  background:var(--paper);
   border:1px solid var(--line);border-radius:var(--radius);
   padding:18px;margin-bottom:10px;box-shadow:var(--shadow-sm);
 }
 
 /* ===== プロファイルバー ===== */
 #sim-prof-sel,#sim-prof-name{
-  background:#fcfaf4;
+  background:#fafafa;
 }
 
 /* ===== タブバー ===== */
@@ -295,9 +280,8 @@ select.sim-input{
 
 <div id="main-app" class="app">
   <div class="header-row">
-    <div class="eyebrow">Asset Projection</div>
-    <h1>資産シミュレーター</h1>
-    <p class="subtitle" id="subtitle">毎月の収支と現在の資産から、将来をひと目で。</p>
+    <h1>📈 資産シミュレーター</h1>
+    <p class="subtitle" id="subtitle">毎月の収支と現在の資産から、将来をシミュレーション</p>
   </div>
   <div id="status-bar" class="status-bar"></div>
   <div id="sim-content"></div>
@@ -513,7 +497,7 @@ function renderSim(){
 
 
   // 月々の収支入力セクション（複数月の実績を入力して平均を算出）
-  const linkTitle=document.createElement('div');linkTitle.className='sim-section-title';linkTitle.textContent='毎月の収支';
+  const linkTitle=document.createElement('div');linkTitle.className='sim-section-title';linkTitle.textContent='💰 毎月の収支';
   panels.income.appendChild(linkTitle);
 
   const linkCard=document.createElement('div');
@@ -536,7 +520,7 @@ function renderSim(){
     // ヘッダー
     const head=document.createElement('div');
     head.style.cssText='display:flex;gap:5px;font-size:10px;color:var(--ink-soft);font-weight:700;padding:0 2px;letter-spacing:.03em';
-    head.innerHTML='<div style="flex:1 1 0;min-width:0">月</div><div style="flex:1.15 1 0;min-width:0;text-align:right">収入(円)</div><div style="flex:1.15 1 0;min-width:0;text-align:right">支出(円)</div><div style="width:30px;flex-shrink:0"></div>';
+    head.innerHTML='<div style="flex:1 1 0;min-width:0">月</div><div style="flex:1.15 1 0;min-width:0;text-align:right">収入(万円)</div><div style="flex:1.15 1 0;min-width:0;text-align:right">支出(万円)</div><div style="width:30px;flex-shrink:0"></div>';
     monthRows.appendChild(head);
 
     simMonthData.forEach(function(row,idx){
@@ -545,21 +529,21 @@ function renderSim(){
 
       const labelInp=document.createElement('input');labelInp.type='text';labelInp.placeholder='例: 1月';
       labelInp.value=row.label||'';
-      labelInp.style.cssText='flex:1 1 0;min-width:0;padding:8px 7px;border:1.5px solid var(--line);border-radius:9px;font-size:13px;background:#fcfaf4;font-family:inherit';
+      labelInp.style.cssText='flex:1 1 0;min-width:0;padding:8px 7px;border:1.5px solid var(--line);border-radius:9px;font-size:13px;background:#fafafa;font-family:inherit';
       labelInp.addEventListener('input',function(){simMonthData[idx].label=labelInp.value;});
 
-      const incInp=document.createElement('input');incInp.type='number';incInp.placeholder='0';
-      incInp.value=(row.income!=null?row.income:'');
-      incInp.style.cssText='flex:1.15 1 0;min-width:0;padding:8px 7px;border:1.5px solid var(--line);border-radius:9px;font-size:13px;text-align:right;color:var(--pos);background:#fcfaf4;font-family:inherit;font-variant-numeric:tabular-nums';
-      incInp.addEventListener('input',function(){simMonthData[idx].income=parseFloat(incInp.value)||0;recalcMonthly();});
+      const incInp=document.createElement('input');incInp.type='number';incInp.placeholder='0';incInp.step='0.1';
+      incInp.value=(row.income?row.income/10000:'');
+      incInp.style.cssText='flex:1.15 1 0;min-width:0;padding:8px 7px;border:1.5px solid var(--line);border-radius:9px;font-size:13px;text-align:right;color:var(--pos);background:#fafafa;font-family:inherit;font-variant-numeric:tabular-nums';
+      incInp.addEventListener('input',function(){simMonthData[idx].income=(parseFloat(incInp.value)||0)*10000;recalcMonthly();});
 
-      const expInp=document.createElement('input');expInp.type='number';expInp.placeholder='0';
-      expInp.value=(row.expense!=null?row.expense:'');
-      expInp.style.cssText='flex:1.15 1 0;min-width:0;padding:8px 7px;border:1.5px solid var(--line);border-radius:9px;font-size:13px;text-align:right;color:var(--neg);background:#fcfaf4;font-family:inherit;font-variant-numeric:tabular-nums';
-      expInp.addEventListener('input',function(){simMonthData[idx].expense=parseFloat(expInp.value)||0;recalcMonthly();});
+      const expInp=document.createElement('input');expInp.type='number';expInp.placeholder='0';expInp.step='0.1';
+      expInp.value=(row.expense?row.expense/10000:'');
+      expInp.style.cssText='flex:1.15 1 0;min-width:0;padding:8px 7px;border:1.5px solid var(--line);border-radius:9px;font-size:13px;text-align:right;color:var(--neg);background:#fafafa;font-family:inherit;font-variant-numeric:tabular-nums';
+      expInp.addEventListener('input',function(){simMonthData[idx].expense=(parseFloat(expInp.value)||0)*10000;recalcMonthly();});
 
       const delBtn=document.createElement('button');delBtn.textContent='✕';
-      delBtn.style.cssText='width:30px;height:36px;border:none;background:#f3e3e3;color:var(--neg);border-radius:9px;cursor:pointer;font-size:13px;flex-shrink:0;flex-grow:0';
+      delBtn.style.cssText='width:30px;height:36px;border:none;background:#fee2e2;color:var(--neg);border-radius:9px;cursor:pointer;font-size:13px;flex-shrink:0;flex-grow:0';
       delBtn.addEventListener('click',function(){
         if(simMonthData.length<=1){simMonthData[0]={label:'',income:0,expense:0};}
         else{simMonthData.splice(idx,1);}
@@ -583,11 +567,11 @@ function renderSim(){
 
   // 平均の計算式表示
   const calcRow=document.createElement('div');
-  calcRow.style.cssText='display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 14px;background:#fffdf8;border-radius:12px;border:1px solid var(--line);font-size:13px';
+  calcRow.style.cssText='display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 14px;background:#ffffff;border-radius:12px;border:1px solid var(--line);font-size:13px';
 
   function makeCalcBox(id,label,color,editable,unit){
     const box=document.createElement('div');box.style.cssText='display:flex;flex-direction:column;align-items:center;gap:2px;min-width:90px';
-    const lbl=document.createElement('div');lbl.style.cssText='font-size:10px;color:#5f6d68';lbl.textContent=label;
+    const lbl=document.createElement('div');lbl.style.cssText='font-size:10px;color:#666666';lbl.textContent=label;
     if(editable){
       const inp=document.createElement('input');inp.type='number';inp.id=id;
       inp.style.cssText='width:90px;text-align:center;padding:5px;border:1.5px solid '+color+';border-radius:6px;font-size:14px;font-weight:700;color:'+color;
@@ -595,26 +579,26 @@ function renderSim(){
       box.appendChild(lbl);box.appendChild(inp);
     } else {
       const val=document.createElement('div');val.id=id;
-      val.style.cssText='font-size:15px;font-weight:700;color:'+color+';padding:6px 8px;background:#f4f1e8;border-radius:8px;min-width:90px;text-align:center;font-variant-numeric:tabular-nums';
+      val.style.cssText='font-size:15px;font-weight:700;color:'+color+';padding:6px 8px;background:#f5f5f5;border-radius:8px;min-width:90px;text-align:center;font-variant-numeric:tabular-nums';
       val.textContent='—';
       box.appendChild(lbl);box.appendChild(val);
     }
-    if(unit){const u=document.createElement('div');u.style.cssText='font-size:10px;color:#94a097';u.textContent=unit;box.appendChild(u);}
+    if(unit){const u=document.createElement('div');u.style.cssText='font-size:10px;color:#999999';u.textContent=unit;box.appendChild(u);}
     return box;
   }
   function makeOp(symbol){
-    const op=document.createElement('div');op.style.cssText='font-size:18px;color:#94a097;font-weight:300;flex-shrink:0';op.textContent=symbol;return op;
+    const op=document.createElement('div');op.style.cssText='font-size:18px;color:#999999;font-weight:300;flex-shrink:0';op.textContent=symbol;return op;
   }
 
-  calcRow.appendChild(makeCalcBox('sim-monthly-balance','月平均収支','#1d6e4f',false,'/月'));
+  calcRow.appendChild(makeCalcBox('sim-monthly-balance','月平均収支','#166534',false,'/月'));
   calcRow.appendChild(makeOp('−'));
-  calcRow.appendChild(makeCalcBox('sim-monthly-invest','投資積立額 (万円)','#0f3d3a',true,'/月'));
+  calcRow.appendChild(makeCalcBox('sim-monthly-invest','投資積立額 (万円)','#2563eb',true,'/月'));
   calcRow.appendChild(makeOp('='));
-  calcRow.appendChild(makeCalcBox('sim-calc-cash-gain','現金増加額','#c08a2e',false,'/月'));
+  calcRow.appendChild(makeCalcBox('sim-calc-cash-gain','現金増加額','#d97706',false,'/月'));
   linkCard.appendChild(calcRow);
 
   const linkPeriodInfo=document.createElement('div');linkPeriodInfo.id='sim-period-info';
-  linkPeriodInfo.style.cssText='font-size:11px;color:#5f6d68;margin-top:8px;text-align:right';
+  linkPeriodInfo.style.cssText='font-size:11px;color:#666666;margin-top:8px;text-align:right';
   linkPeriodInfo.textContent='月を入力すると平均が計算されます';
   linkCard.appendChild(linkPeriodInfo);
   panels.income.appendChild(linkCard);
@@ -649,7 +633,7 @@ function renderSim(){
     const cashGain=_monthlyBalance-monthlyInvest;
     const cashGainEl=document.getElementById('sim-calc-cash-gain');
     cashGainEl.textContent=fmt(Math.round(cashGain));
-    cashGainEl.style.color=cashGain>=0?'#c08a2e':'#b03a3a';
+    cashGainEl.style.color=cashGain>=0?'#d97706':'#991b1b';
     // 基本設定の積立額・現金増加額に自動反映
     const monthlyEl=document.getElementById('sim-monthly');
     if(monthlyEl) monthlyEl.value=monthlyInvestWan;
@@ -664,7 +648,7 @@ function renderSim(){
   simRenderMonthRows=renderMonthRows;
   simRecalcMonthly=recalcMonthly;
 
-  const inputTitle=document.createElement('div');inputTitle.className='sim-section-title';inputTitle.textContent='基本設定';
+  const inputTitle=document.createElement('div');inputTitle.className='sim-section-title';inputTitle.textContent='📊 基本設定';
   panels.settings.appendChild(inputTitle);
   const grid=document.createElement('div');grid.className='sim-inputs';
   const fields=[
@@ -688,7 +672,7 @@ function renderSim(){
   });
   panels.settings.appendChild(grid);
   // ===== ライフイベントセクション =====
-  const evTitle=document.createElement('div');evTitle.className='sim-section-title';evTitle.textContent='ライフイベント';
+  const evTitle=document.createElement('div');evTitle.className='sim-section-title';evTitle.textContent='🎯 ライフイベント';
   panels.events.appendChild(evTitle);
 
   const evDesc=document.createElement('div');evDesc.style.cssText='font-size:11.5px;color:var(--ink-soft);margin-bottom:12px;line-height:1.6';
@@ -783,23 +767,23 @@ function renderSim(){
     if(modal) modal.remove();
     modal=document.createElement('div');modal.id='sim-pattern-modal';
     modal.style.cssText='position:fixed;inset:0;z-index:2000;background:rgba(28,40,38,.55);display:flex;align-items:center;justify-content:center';
-    const box=document.createElement('div');box.style.cssText='background:#fffdf8;border-radius:20px;padding:22px;width:min(480px,95vw);max-height:82vh;overflow-y:auto;box-shadow:0 18px 50px rgba(28,40,38,.28)';
+    const box=document.createElement('div');box.style.cssText='background:#ffffff;border-radius:20px;padding:22px;width:min(480px,95vw);max-height:82vh;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,.22)';
     const title=document.createElement('div');title.style.cssText='font-size:16px;font-weight:700;margin-bottom:4px';title.textContent=preset.name+' のパターンを選択';
-    const sub=document.createElement('div');sub.style.cssText='font-size:12px;color:#5f6d68;margin-bottom:14px';sub.textContent='追加後に各値を調整できます';
+    const sub=document.createElement('div');sub.style.cssText='font-size:12px;color:#666666;margin-bottom:14px';sub.textContent='追加後に各値を調整できます';
     box.appendChild(title);box.appendChild(sub);
     // 開始年齢入力
-    const ageRow=document.createElement('div');ageRow.style.cssText='display:flex;align-items:center;gap:8px;margin-bottom:12px;padding:8px 10px;background:#f4f1e8;border-radius:8px';
-    const ageLbl=document.createElement('label');ageLbl.style.cssText='font-size:12px;color:#5f6d68';ageLbl.textContent='開始年齢:';
-    const ageInp=document.createElement('input');ageInp.type='number';ageInp.value=getSimVal('sim-age')||35;ageInp.style.cssText='width:60px;padding:4px 6px;border:1px solid #e3ddcf;border-radius:6px;font-size:13px';
+    const ageRow=document.createElement('div');ageRow.style.cssText='display:flex;align-items:center;gap:8px;margin-bottom:12px;padding:8px 10px;background:#f5f5f5;border-radius:8px';
+    const ageLbl=document.createElement('label');ageLbl.style.cssText='font-size:12px;color:#666666';ageLbl.textContent='開始年齢:';
+    const ageInp=document.createElement('input');ageInp.type='number';ageInp.value=getSimVal('sim-age')||35;ageInp.style.cssText='width:60px;padding:4px 6px;border:1px solid #e8e8e8;border-radius:6px;font-size:13px';
     ageRow.appendChild(ageLbl);ageRow.appendChild(ageInp);box.appendChild(ageRow);
 
     preset.patterns.forEach(function(pat){
-      const card=document.createElement('div');card.style.cssText='border:1.5px solid #e3ddcf;border-radius:10px;padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:all .15s';
-      card.onmouseover=function(){card.style.borderColor='#1d5c54';card.style.background='#eef3ee';};
-      card.onmouseout=function(){card.style.borderColor='#e3ddcf';card.style.background='#fff';};
-      const patTitle=document.createElement('div');patTitle.style.cssText='font-size:13px;font-weight:700;color:#0f3d3a;margin-bottom:2px';patTitle.textContent=pat.label;
-      const patDesc=document.createElement('div');patDesc.style.cssText='font-size:11px;color:#5f6d68;margin-bottom:6px';patDesc.textContent=pat.desc;
-      const patItems=document.createElement('div');patItems.style.cssText='font-size:11px;color:#5f6d68';
+      const card=document.createElement('div');card.style.cssText='border:1.5px solid #e8e8e8;border-radius:10px;padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:all .15s';
+      card.onmouseover=function(){card.style.borderColor='#2563eb';card.style.background='#eff6ff';};
+      card.onmouseout=function(){card.style.borderColor='#e8e8e8';card.style.background='#fff';};
+      const patTitle=document.createElement('div');patTitle.style.cssText='font-size:13px;font-weight:700;color:#1a1a1a;margin-bottom:2px';patTitle.textContent=pat.label;
+      const patDesc=document.createElement('div');patDesc.style.cssText='font-size:11px;color:#666666;margin-bottom:6px';patDesc.textContent=pat.desc;
+      const patItems=document.createElement('div');patItems.style.cssText='font-size:11px;color:#666666';
       pat.items.forEach(function(item){
         const line=document.createElement('div');
         const parts=[];
@@ -819,7 +803,7 @@ function renderSim(){
       });
       box.appendChild(card);
     });
-    const closeBtn=document.createElement('button');closeBtn.textContent='キャンセル';closeBtn.style.cssText='width:100%;padding:8px;margin-top:4px;background:#ece7da;color:#5f6d68;border:none;border-radius:8px;cursor:pointer;font-size:13px';
+    const closeBtn=document.createElement('button');closeBtn.textContent='キャンセル';closeBtn.style.cssText='width:100%;padding:8px;margin-top:4px;background:#ece7da;color:#666666;border:none;border-radius:8px;cursor:pointer;font-size:13px';
     closeBtn.addEventListener('click',function(){modal.remove();});
     box.appendChild(closeBtn);
     modal.appendChild(box);
@@ -831,9 +815,9 @@ function renderSim(){
     let modal=document.getElementById('sim-pattern-modal');if(modal)modal.remove();
     modal=document.createElement('div');modal.id='sim-pattern-modal';
     modal.style.cssText='position:fixed;inset:0;z-index:2000;background:rgba(28,40,38,.55);display:flex;align-items:center;justify-content:center';
-    const box=document.createElement('div');box.style.cssText='background:#fffdf8;border-radius:20px;padding:22px;width:min(520px,95vw);max-height:86vh;overflow-y:auto;box-shadow:0 18px 50px rgba(28,40,38,.28)';
+    const box=document.createElement('div');box.style.cssText='background:#ffffff;border-radius:20px;padding:22px;width:min(520px,95vw);max-height:86vh;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,.22)';
     const title=document.createElement('div');title.style.cssText='font-size:16px;font-weight:700;margin-bottom:4px';title.textContent='📋 その他のライフイベント';
-    const sub=document.createElement('div');sub.style.cssText='font-size:12px;color:#5f6d68;margin-bottom:16px';sub.textContent='必要なイベントを選んで追加してください（複数選択可）';
+    const sub=document.createElement('div');sub.style.cssText='font-size:12px;color:#666666;margin-bottom:16px';sub.textContent='必要なイベントを選んで追加してください（複数選択可）';
     box.appendChild(title);box.appendChild(sub);
 
     const subPresets=[
@@ -913,20 +897,20 @@ function renderSim(){
     ];
 
     // 開始年齢入力
-    const ageRow=document.createElement('div');ageRow.style.cssText='display:flex;align-items:center;gap:8px;margin-bottom:14px;padding:8px 12px;background:#f4f1e8;border-radius:8px';
-    const ageLbl=document.createElement('label');ageLbl.style.cssText='font-size:12px;color:#5f6d68';ageLbl.textContent='デフォルト開始年齢:';
-    const ageInp=document.createElement('input');ageInp.type='number';ageInp.value=getSimVal('sim-age')||35;ageInp.style.cssText='width:60px;padding:4px 6px;border:1px solid #e3ddcf;border-radius:6px;font-size:13px';
-    const ageSub=document.createElement('span');ageSub.style.cssText='font-size:11px;color:#94a097';ageSub.textContent='（追加後に変更可）';
+    const ageRow=document.createElement('div');ageRow.style.cssText='display:flex;align-items:center;gap:8px;margin-bottom:14px;padding:8px 12px;background:#f5f5f5;border-radius:8px';
+    const ageLbl=document.createElement('label');ageLbl.style.cssText='font-size:12px;color:#666666';ageLbl.textContent='デフォルト開始年齢:';
+    const ageInp=document.createElement('input');ageInp.type='number';ageInp.value=getSimVal('sim-age')||35;ageInp.style.cssText='width:60px;padding:4px 6px;border:1px solid #e8e8e8;border-radius:6px;font-size:13px';
+    const ageSub=document.createElement('span');ageSub.style.cssText='font-size:11px;color:#999999';ageSub.textContent='（追加後に変更可）';
     ageRow.appendChild(ageLbl);ageRow.appendChild(ageInp);ageRow.appendChild(ageSub);box.appendChild(ageRow);
 
     subPresets.forEach(function(cat){
-      const catTitle=document.createElement('div');catTitle.style.cssText='font-size:13px;font-weight:700;color:#1c2826;margin:12px 0 6px;padding-bottom:4px;border-bottom:1px solid #e3ddcf';catTitle.textContent=cat.category;box.appendChild(catTitle);
+      const catTitle=document.createElement('div');catTitle.style.cssText='font-size:13px;font-weight:700;color:#1a1a1a;margin:12px 0 6px;padding-bottom:4px;border-bottom:1px solid #e8e8e8';catTitle.textContent=cat.category;box.appendChild(catTitle);
       cat.items.forEach(function(preset){
         const row=document.createElement('div');row.style.cssText='display:flex;align-items:center;gap:8px;margin-bottom:6px';
         const btn=document.createElement('button');btn.textContent='＋ '+preset.name;
-        btn.style.cssText='padding:6px 12px;font-size:12px;background:#f4f1e8;color:#1c2826;border:1.5px solid #e3ddcf;border-radius:8px;cursor:pointer;text-align:left;flex:1';
-        btn.onmouseover=function(){btn.style.background='#e3ddcf';btn.style.borderColor='#1d5c54';btn.style.color='#0f3d3a';};
-        btn.onmouseout=function(){btn.style.background='#f4f1e8';btn.style.borderColor='#e3ddcf';btn.style.color='#1c2826';};
+        btn.style.cssText='padding:6px 12px;font-size:12px;background:#f5f5f5;color:#1a1a1a;border:1.5px solid #e8e8e8;border-radius:8px;cursor:pointer;text-align:left;flex:1';
+        btn.onmouseover=function(){btn.style.background='#e8e8e8';btn.style.borderColor='#2563eb';btn.style.color='#1a1a1a';};
+        btn.onmouseout=function(){btn.style.background='#f5f5f5';btn.style.borderColor='#e8e8e8';btn.style.color='#1a1a1a';};
         btn.addEventListener('click',function(){
           const defaultAge=parseFloat(ageInp.value)||35;
           // 特殊な年齢入力が必要なプリセット
@@ -953,7 +937,7 @@ function renderSim(){
               addEvent({label:item.label,group:preset.group,patternName:preset.patterns[0].label,startAge:defaultAge,endAge:item.endAge||95,monthly:item.monthly,oneTime:item.oneTime,interval:item.interval});
             });
             renderEvents();runSim();
-            btn.textContent='✓ '+preset.name+' 追加済';btn.style.background='#e6efe9';btn.style.color='#1d6e4f';btn.style.borderColor='#a9c9b8';
+            btn.textContent='✓ '+preset.name+' 追加済';btn.style.background='#dcfce7';btn.style.color='#166534';btn.style.borderColor='#86efac';
             btn.disabled=true;
           } else {
             modal.remove();
@@ -964,7 +948,7 @@ function renderSim(){
       });
     });
 
-    const closeBtn=document.createElement('button');closeBtn.textContent='閉じる';closeBtn.style.cssText='width:100%;padding:9px;margin-top:10px;background:#ece7da;color:#5f6d68;border:none;border-radius:8px;cursor:pointer;font-size:13px';
+    const closeBtn=document.createElement('button');closeBtn.textContent='閉じる';closeBtn.style.cssText='width:100%;padding:9px;margin-top:10px;background:#ece7da;color:#666666;border:none;border-radius:8px;cursor:pointer;font-size:13px';
     closeBtn.addEventListener('click',function(){modal.remove();});
     box.appendChild(closeBtn);
     modal.appendChild(box);modal.addEventListener('click',function(e){if(e.target===modal)modal.remove();});
@@ -975,22 +959,22 @@ function renderSim(){
     let modal=document.getElementById('sim-pattern-modal');if(modal)modal.remove();
     modal=document.createElement('div');modal.id='sim-pattern-modal';
     modal.style.cssText='position:fixed;inset:0;z-index:2000;background:rgba(28,40,38,.55);display:flex;align-items:center;justify-content:center';
-    const box=document.createElement('div');box.style.cssText='background:#fffdf8;border-radius:20px;padding:22px;width:min(480px,95vw);max-height:82vh;overflow-y:auto;box-shadow:0 18px 50px rgba(28,40,38,.28)';
+    const box=document.createElement('div');box.style.cssText='background:#ffffff;border-radius:20px;padding:22px;width:min(480px,95vw);max-height:82vh;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,.22)';
     const title=document.createElement('div');title.style.cssText='font-size:16px;font-weight:700;margin-bottom:4px';title.textContent=preset.name+' の設定';
-    const sub=document.createElement('div');sub.style.cssText='font-size:12px;color:#5f6d68;margin-bottom:14px';sub.textContent='年齢を入力すると終了時期が自動計算されます';
+    const sub=document.createElement('div');sub.style.cssText='font-size:12px;color:#666666;margin-bottom:14px';sub.textContent='年齢を入力すると終了時期が自動計算されます';
     box.appendChild(title);box.appendChild(sub);
 
     function mkF(label,val){
       const wrap=document.createElement('div');wrap.style.cssText='margin-bottom:10px';
-      const lbl=document.createElement('label');lbl.style.cssText='font-size:12px;color:#5f6d68;display:block;margin-bottom:3px';lbl.textContent=label;
-      const inp=document.createElement('input');inp.type='number';inp.value=val;inp.style.cssText='width:100%;padding:7px 10px;border:1px solid #e3ddcf;border-radius:8px;font-size:14px';
+      const lbl=document.createElement('label');lbl.style.cssText='font-size:12px;color:#666666;display:block;margin-bottom:3px';lbl.textContent=label;
+      const inp=document.createElement('input');inp.type='number';inp.value=val;inp.style.cssText='width:100%;padding:7px 10px;border:1px solid #e8e8e8;border-radius:8px;font-size:14px';
       wrap.appendChild(lbl);wrap.appendChild(inp);return{wrap,inp};
     }
     const myAgeF=mkF('現在の自分の年齢',myDefaultAge);
     const ctxAgeF=mkF(ctx.label,ctx.default);
     box.appendChild(myAgeF.wrap);box.appendChild(ctxAgeF.wrap);
 
-    const preview=document.createElement('div');preview.style.cssText='background:#f6ecd6;border:1px solid #e7c98a;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:#8a6420;min-height:36px';
+    const preview=document.createElement('div');preview.style.cssText='background:#fef9c3;border:1px solid #fde047;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:#854d0e;min-height:36px';
     function updatePreview(){
       const ma=parseFloat(myAgeF.inp.value)||myDefaultAge;
       const ca=parseFloat(ctxAgeF.inp.value)||ctx.default;
@@ -1004,12 +988,12 @@ function renderSim(){
     box.appendChild(preview);
 
     preset.patterns.forEach(function(pat){
-      const card=document.createElement('div');card.style.cssText='border:1.5px solid #e3ddcf;border-radius:10px;padding:12px 14px;margin-bottom:8px;cursor:pointer';
-      card.onmouseover=function(){card.style.borderColor='#1d5c54';card.style.background='#eef3ee';};
-      card.onmouseout=function(){card.style.borderColor='#e3ddcf';card.style.background='#fff';};
-      const pt=document.createElement('div');pt.style.cssText='font-size:13px;font-weight:700;color:#0f3d3a;margin-bottom:2px';pt.textContent=pat.label;
-      const pd=document.createElement('div');pd.style.cssText='font-size:11px;color:#5f6d68;margin-bottom:4px';pd.textContent=pat.desc;
-      const pi=document.createElement('div');pi.style.cssText='font-size:11px;color:#5f6d68';
+      const card=document.createElement('div');card.style.cssText='border:1.5px solid #e8e8e8;border-radius:10px;padding:12px 14px;margin-bottom:8px;cursor:pointer';
+      card.onmouseover=function(){card.style.borderColor='#2563eb';card.style.background='#eff6ff';};
+      card.onmouseout=function(){card.style.borderColor='#e8e8e8';card.style.background='#fff';};
+      const pt=document.createElement('div');pt.style.cssText='font-size:13px;font-weight:700;color:#1a1a1a;margin-bottom:2px';pt.textContent=pat.label;
+      const pd=document.createElement('div');pd.style.cssText='font-size:11px;color:#666666;margin-bottom:4px';pd.textContent=pat.desc;
+      const pi=document.createElement('div');pi.style.cssText='font-size:11px;color:#666666';
       pat.items.forEach(function(item){
         const l=document.createElement('div');const parts=[];
         if(item.monthly>0)parts.push('月'+item.monthly+'万円');
@@ -1029,7 +1013,7 @@ function renderSim(){
       });
       box.appendChild(card);
     });
-    const closeBtn=document.createElement('button');closeBtn.textContent='キャンセル';closeBtn.style.cssText='width:100%;padding:8px;margin-top:4px;background:#ece7da;color:#5f6d68;border:none;border-radius:8px;cursor:pointer;font-size:13px';
+    const closeBtn=document.createElement('button');closeBtn.textContent='キャンセル';closeBtn.style.cssText='width:100%;padding:8px;margin-top:4px;background:#ece7da;color:#666666;border:none;border-radius:8px;cursor:pointer;font-size:13px';
     closeBtn.addEventListener('click',function(){modal.remove();});
     box.appendChild(closeBtn);
     modal.appendChild(box);modal.addEventListener('click',function(e){if(e.target===modal)modal.remove();});
@@ -1040,21 +1024,21 @@ function renderSim(){
     let modal=document.getElementById('sim-pattern-modal');if(modal)modal.remove();
     modal=document.createElement('div');modal.id='sim-pattern-modal';
     modal.style.cssText='position:fixed;inset:0;z-index:2000;background:rgba(28,40,38,.55);display:flex;align-items:center;justify-content:center';
-    const box=document.createElement('div');box.style.cssText='background:#fffdf8;border-radius:20px;padding:22px;width:min(480px,95vw);max-height:82vh;overflow-y:auto;box-shadow:0 18px 50px rgba(28,40,38,.28)';
+    const box=document.createElement('div');box.style.cssText='background:#ffffff;border-radius:20px;padding:22px;width:min(480px,95vw);max-height:82vh;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,.22)';
     const title=document.createElement('div');title.style.cssText='font-size:16px;font-weight:700;margin-bottom:4px';title.textContent=preset.name+' のパターンを選択';
-    const sub=document.createElement('div');sub.style.cssText='font-size:12px;color:#5f6d68;margin-bottom:14px';sub.textContent='追加後に各値を調整できます';
+    const sub=document.createElement('div');sub.style.cssText='font-size:12px;color:#666666;margin-bottom:14px';sub.textContent='追加後に各値を調整できます';
     box.appendChild(title);box.appendChild(sub);
-    const ageRow=document.createElement('div');ageRow.style.cssText='display:flex;align-items:center;gap:8px;margin-bottom:12px;padding:8px 10px;background:#f4f1e8;border-radius:8px';
-    const ageLbl=document.createElement('label');ageLbl.style.cssText='font-size:12px;color:#5f6d68';ageLbl.textContent='開始年齢:';
-    const ageInp=document.createElement('input');ageInp.type='number';ageInp.value=defaultAge;ageInp.style.cssText='width:60px;padding:4px 6px;border:1px solid #e3ddcf;border-radius:6px;font-size:13px';
+    const ageRow=document.createElement('div');ageRow.style.cssText='display:flex;align-items:center;gap:8px;margin-bottom:12px;padding:8px 10px;background:#f5f5f5;border-radius:8px';
+    const ageLbl=document.createElement('label');ageLbl.style.cssText='font-size:12px;color:#666666';ageLbl.textContent='開始年齢:';
+    const ageInp=document.createElement('input');ageInp.type='number';ageInp.value=defaultAge;ageInp.style.cssText='width:60px;padding:4px 6px;border:1px solid #e8e8e8;border-radius:6px;font-size:13px';
     ageRow.appendChild(ageLbl);ageRow.appendChild(ageInp);box.appendChild(ageRow);
     preset.patterns.forEach(function(pat){
-      const card=document.createElement('div');card.style.cssText='border:1.5px solid #e3ddcf;border-radius:10px;padding:12px 14px;margin-bottom:8px;cursor:pointer';
-      card.onmouseover=function(){card.style.borderColor='#1d5c54';card.style.background='#eef3ee';};
-      card.onmouseout=function(){card.style.borderColor='#e3ddcf';card.style.background='#fff';};
-      const pt=document.createElement('div');pt.style.cssText='font-size:13px;font-weight:700;color:#0f3d3a;margin-bottom:2px';pt.textContent=pat.label;
-      const pd=document.createElement('div');pd.style.cssText='font-size:11px;color:#5f6d68;margin-bottom:4px';pd.textContent=pat.desc;
-      const pi=document.createElement('div');pi.style.cssText='font-size:11px;color:#5f6d68';
+      const card=document.createElement('div');card.style.cssText='border:1.5px solid #e8e8e8;border-radius:10px;padding:12px 14px;margin-bottom:8px;cursor:pointer';
+      card.onmouseover=function(){card.style.borderColor='#2563eb';card.style.background='#eff6ff';};
+      card.onmouseout=function(){card.style.borderColor='#e8e8e8';card.style.background='#fff';};
+      const pt=document.createElement('div');pt.style.cssText='font-size:13px;font-weight:700;color:#1a1a1a;margin-bottom:2px';pt.textContent=pat.label;
+      const pd=document.createElement('div');pd.style.cssText='font-size:11px;color:#666666;margin-bottom:4px';pd.textContent=pat.desc;
+      const pi=document.createElement('div');pi.style.cssText='font-size:11px;color:#666666';
       pat.items.forEach(function(item){
         const l=document.createElement('div');const parts=[];
         if(item.monthly>0)parts.push('月'+item.monthly+'万円');
@@ -1069,7 +1053,7 @@ function renderSim(){
       });
       box.appendChild(card);
     });
-    const closeBtn=document.createElement('button');closeBtn.textContent='キャンセル';closeBtn.style.cssText='width:100%;padding:8px;margin-top:4px;background:#ece7da;color:#5f6d68;border:none;border-radius:8px;cursor:pointer;font-size:13px';
+    const closeBtn=document.createElement('button');closeBtn.textContent='キャンセル';closeBtn.style.cssText='width:100%;padding:8px;margin-top:4px;background:#ece7da;color:#666666;border:none;border-radius:8px;cursor:pointer;font-size:13px';
     closeBtn.addEventListener('click',function(){modal.remove();});
     box.appendChild(closeBtn);
     modal.appendChild(box);modal.addEventListener('click',function(e){if(e.target===modal)modal.remove();});
@@ -1080,16 +1064,16 @@ function renderSim(){
     let modal=document.getElementById('sim-pattern-modal');if(modal)modal.remove();
     modal=document.createElement('div');modal.id='sim-pattern-modal';
     modal.style.cssText='position:fixed;inset:0;z-index:2000;background:rgba(28,40,38,.55);display:flex;align-items:center;justify-content:center';
-    const box=document.createElement('div');box.style.cssText='background:#fffdf8;border-radius:14px;padding:20px;width:min(500px,95vw);max-height:85vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2)';
+    const box=document.createElement('div');box.style.cssText='background:#ffffff;border-radius:14px;padding:20px;width:min(500px,95vw);max-height:85vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2)';
     const title=document.createElement('div');title.style.cssText='font-size:16px;font-weight:700;margin-bottom:4px';title.textContent='👶 子供の教育費設定';
-    const sub=document.createElement('div');sub.style.cssText='font-size:12px;color:#5f6d68;margin-bottom:14px';sub.textContent='自分の年齢と子供の年齢から入学金・学費を自動計算します';
+    const sub=document.createElement('div');sub.style.cssText='font-size:12px;color:#666666;margin-bottom:14px';sub.textContent='自分の年齢と子供の年齢から入学金・学費を自動計算します';
     box.appendChild(title);box.appendChild(sub);
 
     function mkField(label,val,min,max,step){
       const wrap=document.createElement('div');wrap.style.cssText='margin-bottom:10px';
-      const lbl=document.createElement('label');lbl.style.cssText='font-size:12px;color:#5f6d68;display:block;margin-bottom:3px';lbl.textContent=label;
+      const lbl=document.createElement('label');lbl.style.cssText='font-size:12px;color:#666666;display:block;margin-bottom:3px';lbl.textContent=label;
       const inp=document.createElement('input');inp.type='number';inp.value=val;inp.min=min;inp.max=max;inp.step=step||1;
-      inp.style.cssText='width:100%;padding:7px 10px;border:1px solid #e3ddcf;border-radius:8px;font-size:14px';
+      inp.style.cssText='width:100%;padding:7px 10px;border:1px solid #e8e8e8;border-radius:8px;font-size:14px';
       wrap.appendChild(lbl);wrap.appendChild(inp);return {wrap,inp};
     }
     const myAge=mkField('現在の自分の年齢',getSimVal('sim-age')||35,20,60);
@@ -1099,7 +1083,7 @@ function renderSim(){
     function getChildCurrentAge(){return Math.max(0,Math.round((parseFloat(myAge.inp.value)||35)-(parseFloat(birthAge.inp.value)||35)));}
 
     // コース選択
-    const courseTitle=document.createElement('div');courseTitle.style.cssText='font-size:13px;font-weight:700;color:#0f3d3a;margin:14px 0 8px';courseTitle.textContent='教育コースを選択';
+    const courseTitle=document.createElement('div');courseTitle.style.cssText='font-size:13px;font-weight:700;color:#1a1a1a;margin:14px 0 8px';courseTitle.textContent='教育コースを選択';
     box.appendChild(courseTitle);
 
     const courses=[
@@ -1114,26 +1098,26 @@ function renderSim(){
     let selectedCourse=courses[0];
     const courseCards=[];
     courses.forEach(function(c,ci){
-      const card=document.createElement('div');card.style.cssText='border:2px solid '+(ci===0?'#1d5c54':'#e3ddcf')+';border-radius:10px;padding:10px 14px;margin-bottom:8px;cursor:pointer;background:'+(ci===0?'#eef3ee':'#fff');
-      const ct=document.createElement('div');ct.style.cssText='font-size:13px;font-weight:700;color:#0f3d3a';ct.textContent=c.label;
-      const cd=document.createElement('div');cd.style.cssText='font-size:11px;color:#5f6d68;margin-top:2px';cd.textContent=c.desc;
+      const card=document.createElement('div');card.style.cssText='border:2px solid '+(ci===0?'#2563eb':'#e8e8e8')+';border-radius:10px;padding:10px 14px;margin-bottom:8px;cursor:pointer;background:'+(ci===0?'#eff6ff':'#fff');
+      const ct=document.createElement('div');ct.style.cssText='font-size:13px;font-weight:700;color:#1a1a1a';ct.textContent=c.label;
+      const cd=document.createElement('div');cd.style.cssText='font-size:11px;color:#666666;margin-top:2px';cd.textContent=c.desc;
       card.appendChild(ct);card.appendChild(cd);
       card.addEventListener('click',function(){
         selectedCourse=c;
-        courseCards.forEach(function(cc,i){cc.style.borderColor=i===ci?'#1d5c54':'#e3ddcf';cc.style.background=i===ci?'#eef3ee':'#fff';});
+        courseCards.forEach(function(cc,i){cc.style.borderColor=i===ci?'#2563eb':'#e8e8e8';cc.style.background=i===ci?'#eff6ff':'#fff';});
       });
       courseCards.push(card);box.appendChild(card);
     });
 
     // プレビュー
-    const preview=document.createElement('div');preview.style.cssText='background:#fffdf8;border:1px solid #e3ddcf;border-radius:8px;padding:10px 12px;margin:12px 0;font-size:11px;color:#0f3d3a';
+    const preview=document.createElement('div');preview.style.cssText='background:#ffffff;border:1px solid #e8e8e8;border-radius:8px;padding:10px 12px;margin:12px 0;font-size:11px;color:#1a1a1a';
     function updatePreview(){
       const ma=parseFloat(myAge.inp.value)||35;
       const ba=parseFloat(birthAge.inp.value)||35;
       const ca=Math.max(0,Math.round(ma-ba)); // 子供の現在年齢
       const c=selectedCourse.costs;
       // プレビューに子供の現在年齢も表示
-      const lines=['<span style="color:#1d5c54;font-weight:600">子供の現在年齢: 約'+ca+'歳</span>'];
+      const lines=['<span style="color:#2563eb;font-weight:600">子供の現在年齢: 約'+ca+'歳</span>'];
       // 小学入学: 子供6歳
       const elemStart=ma+(6-ca);
       if(elemStart>ma) lines.push('小学入学: '+elemStart+'歳'+(c.elemIn?' (入学金'+c.elemIn+'万円)':'')+(c.elemM?' 学費'+c.elemM+'万円/月×6年':''));
@@ -1155,7 +1139,7 @@ function renderSim(){
     updatePreview();
 
     // 追加ボタン
-    const addBtn=document.createElement('button');addBtn.textContent='✓ この設定で追加';addBtn.style.cssText='width:100%;padding:10px;background:#1d5c54;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600;margin-bottom:6px';
+    const addBtn=document.createElement('button');addBtn.textContent='✓ この設定で追加';addBtn.style.cssText='width:100%;padding:10px;background:#2563eb;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600;margin-bottom:6px';
     addBtn.addEventListener('click',function(){
       const ma=parseFloat(myAge.inp.value)||35;
       const ba=parseFloat(birthAge.inp.value)||35;
@@ -1199,7 +1183,7 @@ function renderSim(){
       }
       renderEvents();runSim();modal.remove();
     });
-    const closeBtn=document.createElement('button');closeBtn.textContent='キャンセル';closeBtn.style.cssText='width:100%;padding:8px;background:#ece7da;color:#5f6d68;border:none;border-radius:8px;cursor:pointer;font-size:13px';
+    const closeBtn=document.createElement('button');closeBtn.textContent='キャンセル';closeBtn.style.cssText='width:100%;padding:8px;background:#ece7da;color:#666666;border:none;border-radius:8px;cursor:pointer;font-size:13px';
     closeBtn.addEventListener('click',function(){modal.remove();});
     box.appendChild(addBtn);box.appendChild(closeBtn);
     modal.appendChild(box);modal.addEventListener('click',function(e){if(e.target===modal)modal.remove();});
@@ -1257,13 +1241,13 @@ function renderEvents(){
   const list=document.getElementById('sim-ev-list');if(!list)return;
   list.innerHTML='';
   if(!simEvents.length){
-    const empty=document.createElement('div');empty.style.cssText='font-size:12px;color:#94a097;padding:8px 0';empty.textContent='イベントなし（上のボタンで追加）';list.appendChild(empty);return;
+    const empty=document.createElement('div');empty.style.cssText='font-size:12px;color:#999999;padding:8px 0';empty.textContent='イベントなし（上のボタンで追加）';list.appendChild(empty);return;
   }
 
   function mkNumInp(val,label,onchange,width){
-    const wrap=document.createElement('label');wrap.style.cssText='display:flex;align-items:center;gap:3px;font-size:11px;color:#5f6d68';
+    const wrap=document.createElement('label');wrap.style.cssText='display:flex;align-items:center;gap:3px;font-size:11px;color:#666666';
     wrap.textContent=label;
-    const inp=document.createElement('input');inp.type='number';inp.value=val;inp.style.cssText='width:'+(width||44)+'px;padding:3px 5px;border:1px solid #e3ddcf;border-radius:5px;font-size:12px';
+    const inp=document.createElement('input');inp.type='number';inp.value=val;inp.style.cssText='width:'+(width||44)+'px;padding:3px 5px;border:1px solid #e8e8e8;border-radius:5px;font-size:12px';
     inp.addEventListener('input',function(){onchange(parseFloat(inp.value)||0);runSim();});
     wrap.appendChild(inp);return wrap;
   }
@@ -1282,7 +1266,7 @@ function renderEvents(){
 
     // グループヘッダー
     const ghdr=document.createElement('div');
-    ghdr.style.cssText='background:#eef3ee;border:1.5px solid #e3ddcf;border-radius:10px;margin-bottom:4px;overflow:hidden';
+    ghdr.style.cssText='background:#eff6ff;border:1.5px solid #e8e8e8;border-radius:10px;margin-bottom:4px;overflow:hidden';
 
     const ghdrTop=document.createElement('div');
     ghdrTop.style.cssText='display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer';
@@ -1294,13 +1278,13 @@ function renderEvents(){
       renderEvents();runSim();
     });
 
-    const gName=document.createElement('span');gName.style.cssText='font-size:13px;font-weight:700;color:#0f3d3a;flex:1';gName.textContent=groupName;
+    const gName=document.createElement('span');gName.style.cssText='font-size:13px;font-weight:700;color:#1a1a1a;flex:1';gName.textContent=groupName;
     // パターン名（グループ内の最初のイベントから取得）
     const patName=groupEvs[0]&&groupEvs[0].patternName?groupEvs[0].patternName:null;
-    if(patName){const patBadge=document.createElement('span');patBadge.style.cssText='font-size:10px;background:#e3ddcf;color:#0f3d3a;border-radius:4px;padding:2px 6px;margin-left:4px';patBadge.textContent=patName;gName.appendChild(patBadge);}
-    const gCount=document.createElement('span');gCount.style.cssText='font-size:11px;color:#5f6d68';gCount.textContent=groupEvs.length+'項目';
+    if(patName){const patBadge=document.createElement('span');patBadge.style.cssText='font-size:10px;background:#e8e8e8;color:#1a1a1a;border-radius:4px;padding:2px 6px;margin-left:4px';patBadge.textContent=patName;gName.appendChild(patBadge);}
+    const gCount=document.createElement('span');gCount.style.cssText='font-size:11px;color:#666666';gCount.textContent=groupEvs.length+'項目';
 
-    const expandBtn=document.createElement('span');expandBtn.style.cssText='font-size:12px;color:#5f6d68;transform:rotate(0deg);transition:transform .2s';expandBtn.textContent='▼';
+    const expandBtn=document.createElement('span');expandBtn.style.cssText='font-size:12px;color:#666666;transform:rotate(0deg);transition:transform .2s';expandBtn.textContent='▼';
 
     ghdrTop.appendChild(gToggleAll);ghdrTop.appendChild(gName);ghdrTop.appendChild(gCount);ghdrTop.appendChild(expandBtn);
     ghdr.appendChild(ghdrTop);
@@ -1311,7 +1295,7 @@ function renderEvents(){
     groupEvs.forEach(function(ev){
       const isInc=ev.isIncome===true;
       const row=document.createElement('div');
-      row.style.cssText='background:#fffdf8;border-radius:8px;padding:8px 10px;border:1.5px solid '+(isInc?'#e7c98a':'#e3ddcf')+';margin-bottom:6px;'+(ev.enabled===false?'opacity:0.45':'');
+      row.style.cssText='background:#ffffff;border-radius:8px;padding:8px 10px;border:1.5px solid '+(isInc?'#fde047':'#e8e8e8')+';margin-bottom:6px;'+(ev.enabled===false?'opacity:0.45':'');
 
       const r1=document.createElement('div');r1.style.cssText='display:flex;gap:6px;align-items:center;margin-bottom:5px';
 
@@ -1325,12 +1309,12 @@ function renderEvents(){
       });
 
       const typeBadge=document.createElement('span');
-      typeBadge.style.cssText='font-size:10px;padding:2px 7px;border-radius:4px;font-weight:600;flex-shrink:0;'+(ev.isIncome?'background:#f6ecd6;color:#8a6420':'background:#f3e3e3;color:#991b1b');
+      typeBadge.style.cssText='font-size:10px;padding:2px 7px;border-radius:4px;font-weight:600;flex-shrink:0;'+(ev.isIncome?'background:#fef9c3;color:#854d0e':'background:#fee2e2;color:#991b1b');
       typeBadge.textContent=ev.isIncome?'収入':'支出';
       const nameInp=document.createElement('input');nameInp.type='text';nameInp.value=ev.label;nameInp.className='sim-input';nameInp.style.cssText='flex:1;font-size:12px;padding:4px 6px';
       nameInp.addEventListener('input',function(){ev.label=nameInp.value;});
 
-      const delBtn=document.createElement('button');delBtn.textContent='✕';delBtn.style.cssText='padding:3px 7px;border:none;background:#f3e3e3;color:#991b1b;border-radius:5px;cursor:pointer;font-size:11px';
+      const delBtn=document.createElement('button');delBtn.textContent='✕';delBtn.style.cssText='padding:3px 7px;border:none;background:#fee2e2;color:#991b1b;border-radius:5px;cursor:pointer;font-size:11px';
       delBtn.addEventListener('click',function(){simEvents=simEvents.filter(e=>e.id!==ev.id);renderEvents();runSim();});
 
       r1.appendChild(evCb);r1.appendChild(typeBadge);r1.appendChild(nameInp);r1.appendChild(delBtn);row.appendChild(r1);
@@ -1348,7 +1332,7 @@ function renderEvents(){
     // グループ内カスタム追加ボタン
     const gAddBtn=document.createElement('button');
     gAddBtn.textContent='＋ '+groupName+'に追加';
-    gAddBtn.style.cssText='margin-top:4px;padding:4px 10px;font-size:11px;background:#e3ddcf;color:#0f3d3a;border:none;border-radius:6px;cursor:pointer;width:100%';
+    gAddBtn.style.cssText='margin-top:4px;padding:4px 10px;font-size:11px;background:#e8e8e8;color:#1a1a1a;border:none;border-radius:6px;cursor:pointer;width:100%';
     gAddBtn.addEventListener('click',function(){
       addEvent({label:'新しい項目',group:groupName,startAge:getSimVal('sim-age')||35,endAge:95,monthly:0,oneTime:0,interval:0});
       renderEvents();runSim();
@@ -1358,7 +1342,7 @@ function renderEvents(){
     // グループ削除ボタン
     const gDelBtn=document.createElement('button');
     gDelBtn.textContent='🗑 '+groupName+'を削除';
-    gDelBtn.style.cssText='margin-top:4px;padding:4px 10px;font-size:11px;background:#f3e3e3;color:#991b1b;border:none;border-radius:6px;cursor:pointer;width:100%';
+    gDelBtn.style.cssText='margin-top:4px;padding:4px 10px;font-size:11px;background:#fee2e2;color:#991b1b;border:none;border-radius:6px;cursor:pointer;width:100%';
     gDelBtn.addEventListener('click',function(){
       if(!confirm(groupName+'のイベントをすべて削除しますか？')) return;
       simEvents=simEvents.filter(e=>(e.group||'その他')!==groupName);
@@ -1442,11 +1426,11 @@ function runSim(){
   }
   const retireRow=years.find(y=>y.age===retireAge)||years[years.length-1];
   const drawdownRow=years.find(y=>y.age===drawdownAge);
-  const cardTitle=document.createElement('div');cardTitle.className='sim-section-title';cardTitle.textContent='シミュレーション結果';result.appendChild(cardTitle);
+  const cardTitle=document.createElement('div');cardTitle.className='sim-section-title';cardTitle.textContent='📈 シミュレーション結果';result.appendChild(cardTitle);
   const cards=document.createElement('div');cards.className='sim-result-cards';
-  [{label:`${retireAge}歳時点の総資産`,val:fmtMan(retireRow.total||retireRow.value),sub:`投資 ${fmtMan(retireRow.value)} + 現金 ${fmtMan(retireRow.cash||0)}`,color:'#0f3d3a'},
-   {label:`${retireAge}歳時点の現金`,val:fmtMan(retireRow.cash||0),sub:`月${fmtMan(cashGainMonthly)}×${retireAge-age}年積み上げ`,color:'#8a6420'},
-   {label:`切り崩し年額 (${drawdownAge}歳～)`,val:drawdownRow?fmtMan(drawdownRow.drawAmt):'—',sub:drawdownRow?`月額 ${fmtMan(drawdownRow.drawMonthly)}`:'',color:'#c08a2e'}
+  [{label:`${retireAge}歳時点の総資産`,val:fmtMan(retireRow.total||retireRow.value),sub:`投資 ${fmtMan(retireRow.value)} + 現金 ${fmtMan(retireRow.cash||0)}`,color:'#2563eb'},
+   {label:`${retireAge}歳時点の現金`,val:fmtMan(retireRow.cash||0),sub:`月${fmtMan(cashGainMonthly)}×${retireAge-age}年積み上げ`,color:'#0369a1'},
+   {label:`切り崩し年額 (${drawdownAge}歳～)`,val:drawdownRow?fmtMan(drawdownRow.drawAmt):'—',sub:drawdownRow?`月額 ${fmtMan(drawdownRow.drawMonthly)}`:'',color:'#d97706'}
   ].forEach(function(c){
     const card=document.createElement('div');card.className='sim-card';
     const lbl=document.createElement('div');lbl.className='sim-card-label';lbl.textContent=c.label;
@@ -1455,7 +1439,7 @@ function runSim(){
     card.appendChild(lbl);card.appendChild(val);card.appendChild(sub);cards.appendChild(card);
   });
   result.appendChild(cards);
-  const chartTitle=document.createElement('div');chartTitle.className='sim-section-title';chartTitle.textContent='資産推移グラフ';result.appendChild(chartTitle);
+  const chartTitle=document.createElement('div');chartTitle.className='sim-section-title';chartTitle.textContent='📊 資産推移グラフ';result.appendChild(chartTitle);
   const chartWrap=document.createElement('div');chartWrap.className='sim-chart-wrap';
   const svgNS='http://www.w3.org/2000/svg';
   const W=800,H=280,pL=80,pR=20,pT=20,pB=40,cW=W-pL-pR,cH=H-pT-pB;
@@ -1466,23 +1450,23 @@ function runSim(){
   svg.style.cssText='display:block;min-width:'+W+'px';svg.style.pointerEvents='none';
   [0,0.25,0.5,0.75,1].forEach(function(f){
     const y=pT+cH*(1-f);
-    const line=document.createElementNS(svgNS,'line');line.setAttribute('x1',pL);line.setAttribute('y1',y);line.setAttribute('x2',W-pR);line.setAttribute('y2',y);line.setAttribute('stroke','#e3ddcf');line.setAttribute('stroke-width','1');svg.appendChild(line);
-    const t=document.createElementNS(svgNS,'text');t.setAttribute('x',pL-6);t.setAttribute('y',y+4);t.setAttribute('text-anchor','end');t.setAttribute('font-size','10');t.setAttribute('fill','#94a097');t.textContent=fmtM(maxVal*f);svg.appendChild(t);
+    const line=document.createElementNS(svgNS,'line');line.setAttribute('x1',pL);line.setAttribute('y1',y);line.setAttribute('x2',W-pR);line.setAttribute('y2',y);line.setAttribute('stroke','#e8e8e8');line.setAttribute('stroke-width','1');svg.appendChild(line);
+    const t=document.createElementNS(svgNS,'text');t.setAttribute('x',pL-6);t.setAttribute('y',y+4);t.setAttribute('text-anchor','end');t.setAttribute('font-size','10');t.setAttribute('fill','#999999');t.textContent=fmtM(maxVal*f);svg.appendChild(t);
   });
   years.forEach(function(y,i){
     const x=pL+gap*i+gap/2;
     const totalH=Math.max((y.value/maxVal)*cH,0);
     const prinH=Math.max((Math.min(y.principal,y.value)/maxVal)*cH,0);
     const gainH=totalH-prinH;
-    if(prinH>0){const r=document.createElementNS(svgNS,'rect');r.setAttribute('x',x-bW/2);r.setAttribute('y',pT+cH-prinH);r.setAttribute('width',bW);r.setAttribute('height',prinH);r.setAttribute('fill',y.isDrawdown?'#7d9b94':'#0f3d3a');r.setAttribute('rx','1');svg.appendChild(r);}
-    if(gainH>0){const r=document.createElementNS(svgNS,'rect');r.setAttribute('x',x-bW/2);r.setAttribute('y',pT+cH-totalH);r.setAttribute('width',bW);r.setAttribute('height',gainH);r.setAttribute('fill',y.isDrawdown?'#a9c9b8':'#5fa885');r.setAttribute('rx','1');svg.appendChild(r);}
+    if(prinH>0){const r=document.createElementNS(svgNS,'rect');r.setAttribute('x',x-bW/2);r.setAttribute('y',pT+cH-prinH);r.setAttribute('width',bW);r.setAttribute('height',prinH);r.setAttribute('fill',y.isDrawdown?'#93c5fd':'#3b82f6');r.setAttribute('rx','1');svg.appendChild(r);}
+    if(gainH>0){const r=document.createElementNS(svgNS,'rect');r.setAttribute('x',x-bW/2);r.setAttribute('y',pT+cH-totalH);r.setAttribute('width',bW);r.setAttribute('height',gainH);r.setAttribute('fill',y.isDrawdown?'#6ee7b7':'#10b981');r.setAttribute('rx','1');svg.appendChild(r);}
     // 現金バー（右隣に表示）
     if(y.cash>0&&!y.isDrawdown){
       const cashH=Math.max((y.cash/maxVal)*cH,0);
       const rc=document.createElementNS(svgNS,'rect');
       rc.setAttribute('x',x+bW/2+1);rc.setAttribute('y',pT+cH-cashH);
       rc.setAttribute('width',bW*0.8);rc.setAttribute('height',cashH);
-      rc.setAttribute('fill','#c08a2e');rc.setAttribute('rx','1');svg.appendChild(rc);
+      rc.setAttribute('fill','#f59e0b');rc.setAttribute('rx','1');svg.appendChild(rc);
     }
     // イベントなし現金（薄い比較バー）
     if(simEvents.length>0&&y.cashNoEvent>0&&!y.isDrawdown){
@@ -1490,23 +1474,23 @@ function runSim(){
       const rn=document.createElementNS(svgNS,'rect');
       rn.setAttribute('x',x+bW/2+1);rn.setAttribute('y',pT+cH-noEvH);
       rn.setAttribute('width',bW*0.8);rn.setAttribute('height',noEvH);
-      rn.setAttribute('fill','none');rn.setAttribute('stroke','#c08a2e');rn.setAttribute('stroke-width','1');rn.setAttribute('stroke-dasharray','3,2');rn.setAttribute('rx','1');svg.appendChild(rn);
+      rn.setAttribute('fill','none');rn.setAttribute('stroke','#f59e0b');rn.setAttribute('stroke-width','1');rn.setAttribute('stroke-dasharray','3,2');rn.setAttribute('rx','1');svg.appendChild(rn);
     }
-    if(y.isRetire||y.age===drawdownAge){const line=document.createElementNS(svgNS,'line');line.setAttribute('x1',x);line.setAttribute('y1',pT);line.setAttribute('x2',x);line.setAttribute('y2',pT+cH);line.setAttribute('stroke',y.isRetire?'#0f3d3a':'#c08a2e');line.setAttribute('stroke-width','1.5');line.setAttribute('stroke-dasharray','4,3');svg.appendChild(line);}
-    if(y.age%5===0){const t=document.createElementNS(svgNS,'text');t.setAttribute('x',x);t.setAttribute('y',pT+cH+16);t.setAttribute('text-anchor','middle');t.setAttribute('font-size','10');t.setAttribute('fill','#5f6d68');t.textContent=y.age;svg.appendChild(t);}
+    if(y.isRetire||y.age===drawdownAge){const line=document.createElementNS(svgNS,'line');line.setAttribute('x1',x);line.setAttribute('y1',pT);line.setAttribute('x2',x);line.setAttribute('y2',pT+cH);line.setAttribute('stroke',y.isRetire?'#2563eb':'#d97706');line.setAttribute('stroke-width','1.5');line.setAttribute('stroke-dasharray','4,3');svg.appendChild(line);}
+    if(y.age%5===0){const t=document.createElementNS(svgNS,'text');t.setAttribute('x',x);t.setAttribute('y',pT+cH+16);t.setAttribute('text-anchor','middle');t.setAttribute('font-size','10');t.setAttribute('fill','#666666');t.textContent=y.age;svg.appendChild(t);}
   });
   chartWrap.appendChild(svg);result.appendChild(chartWrap);
   const leg=document.createElement('div');leg.className='legend';leg.style.marginBottom='16px';
-  const legendItems=[{c:'#0f3d3a',l:'元本（積立）'},{c:'#5fa885',l:'運用益'},{c:'#c08a2e',l:'現金'}];
-  if(simEvents.length>0) legendItems.push({c:'#c08a2e',l:'現金（イベントなし）',dashed:true});
-  legendItems.push({c:'#7d9b94',l:'元本（切崩後）'},{c:'#a9c9b8',l:'運用益（切崩後）'});
+  const legendItems=[{c:'#3b82f6',l:'元本（積立）'},{c:'#10b981',l:'運用益'},{c:'#f59e0b',l:'現金'}];
+  if(simEvents.length>0) legendItems.push({c:'#f59e0b',l:'現金（イベントなし）',dashed:true});
+  legendItems.push({c:'#93c5fd',l:'元本（切崩後）'},{c:'#6ee7b7',l:'運用益（切崩後）'});
   legendItems.forEach(function(item){
     const sp=document.createElement('span');sp.className='leg-item';const sw=document.createElement('span');sw.className='leg-swatch';sw.style.background=item.c;sp.appendChild(sw);sp.appendChild(document.createTextNode(item.l));leg.appendChild(sp);
   });
   result.appendChild(leg);
   const tblTitleRow=document.createElement('div');tblTitleRow.style.cssText='display:flex;align-items:center;justify-content:space-between;margin-bottom:0';
-  const tblTitle=document.createElement('div');tblTitle.className='sim-section-title';tblTitle.textContent='年齢別の詳細';tblTitle.style.marginBottom='0';
-  const stepWrap=document.createElement('label');stepWrap.style.cssText='font-size:12px;color:#5f6d68;display:flex;align-items:center;gap:6px';
+  const tblTitle=document.createElement('div');tblTitle.className='sim-section-title';tblTitle.textContent='📋 年齢別詳細';tblTitle.style.marginBottom='0';
+  const stepWrap=document.createElement('label');stepWrap.style.cssText='font-size:12px;color:#666666;display:flex;align-items:center;gap:6px';
   stepWrap.textContent='表示間隔: ';
   const stepSel=document.createElement('select');stepSel.id='sim-table-step';stepSel.className='trend-sel';
   [['1','1年ごと'],['2','2年ごと'],['5','5年ごと（デフォルト）'],['10','10年ごと']].forEach(function(o){
@@ -1549,7 +1533,7 @@ function runSim(){
 
   // テーブル上のイベントチェックボックスUI
   const tblCbWrap=document.createElement('div');
-  tblCbWrap.style.cssText='display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;padding:8px 10px;background:#faf2ee;border:1px solid #e0b8b8;border-radius:8px';
+  tblCbWrap.style.cssText='display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;padding:8px 10px;background:#fff5f5;border:1px solid #fca5a5;border-radius:8px';
   if(simEvents.length>0){
     const tblCbTitle=document.createElement('div');tblCbTitle.style.cssText='width:100%;font-size:11px;font-weight:600;color:#991b1b;margin-bottom:4px';
     tblCbTitle.textContent='📋 表示・有効化するイベント（チェックでON/OFF）';tblCbWrap.appendChild(tblCbTitle);
@@ -1558,12 +1542,12 @@ function runSim(){
     simEvents.forEach(function(ev){const g=ev.group||'その他';if(!groups[g])groups[g]=[];groups[g].push(ev);});
     Object.keys(groups).forEach(function(gName){
       const gEvs=groups[gName];
-      const gWrap=document.createElement('div');gWrap.style.cssText='background:#fffdf8;border:1.5px solid #e3ddcf;border-radius:6px;padding:6px 8px;min-width:140px';
+      const gWrap=document.createElement('div');gWrap.style.cssText='background:#ffffff;border:1.5px solid #e8e8e8;border-radius:6px;padding:6px 8px;min-width:140px';
       // グループチェック
       const gRow=document.createElement('div');gRow.style.cssText='display:flex;align-items:center;gap:4px;margin-bottom:4px';
       const gCb=document.createElement('input');gCb.type='checkbox';gCb.style.cssText='width:14px;height:14px;cursor:pointer';
       gCb.checked=gEvs.some(e=>e.enabled!==false);
-      const gLbl=document.createElement('span');gLbl.style.cssText='font-size:12px;font-weight:700;color:#0f3d3a';gLbl.textContent=gName;
+      const gLbl=document.createElement('span');gLbl.style.cssText='font-size:12px;font-weight:700;color:#1a1a1a';gLbl.textContent=gName;
       gRow.appendChild(gCb);gRow.appendChild(gLbl);gWrap.appendChild(gRow);
       // 個別チェック
       gEvs.forEach(function(ev){
@@ -1575,7 +1559,7 @@ function runSim(){
           gCb.checked=gEvs.some(e=>e.enabled!==false);
           renderEvents();runSim();
         });
-        const eLbl=document.createElement('span');eLbl.style.cssText='font-size:11px;color:'+(ev.isIncome?'#8a6420':'#5f6d68');eLbl.textContent=(ev.isIncome?'💰 ':'💸 ')+ev.label;
+        const eLbl=document.createElement('span');eLbl.style.cssText='font-size:11px;color:'+(ev.isIncome?'#854d0e':'#666666');eLbl.textContent=(ev.isIncome?'💰 ':'💸 ')+ev.label;
         eRow.appendChild(eCb);eRow.appendChild(eLbl);gWrap.appendChild(eRow);
       });
       gCb.addEventListener('change',function(){
@@ -1599,15 +1583,15 @@ function runSim(){
 
   // 上段: ベース列 + グループ名 + 後続列
   const htr1=document.createElement('tr');htr1.className='modal-thead-row';
-  baseCols.forEach(function(h){const th=document.createElement('th');th.textContent=h;th.style.cssText='padding:4px 5px;text-align:right;font-weight:600;font-size:10px;color:#5f6d68';if(h==='年齢')th.style.textAlign='left';th.rowSpan=2;htr1.appendChild(th);});
+  baseCols.forEach(function(h){const th=document.createElement('th');th.textContent=h;th.style.cssText='padding:4px 5px;text-align:right;font-weight:600;font-size:10px;color:#666666';if(h==='年齢')th.style.textAlign='left';th.rowSpan=2;htr1.appendChild(th);});
   Object.keys(activeGroups).forEach(function(gName){
     const evs=activeGroups[gName];
     const th=document.createElement('th');th.colSpan=evs.length;
-    th.style.cssText='padding:4px 5px;text-align:center;font-weight:700;font-size:11px;color:#991b1b;background:#faf2ee;white-space:nowrap;border-left:2px solid #e0b8b8;border-right:2px solid #e0b8b8;border-top:2px solid #e0b8b8;border-radius:4px 4px 0 0';
+    th.style.cssText='padding:4px 5px;text-align:center;font-weight:700;font-size:11px;color:#991b1b;background:#fff5f5;white-space:nowrap;border-left:2px solid #fca5a5;border-right:2px solid #fca5a5;border-top:2px solid #fca5a5;border-radius:4px 4px 0 0';
     const tblPatName=activeGroups[gName][0]&&activeGroups[gName][0].patternName?activeGroups[gName][0].patternName:null;
     th.textContent=gName+(tblPatName?' ['+tblPatName+']':'');htr1.appendChild(th);
   });
-  afterCols.forEach(function(h){const th=document.createElement('th');th.textContent=h;th.style.cssText='padding:4px 5px;text-align:right;font-weight:600;font-size:10px;color:#5f6d68';th.rowSpan=2;htr1.appendChild(th);});
+  afterCols.forEach(function(h){const th=document.createElement('th');th.textContent=h;th.style.cssText='padding:4px 5px;text-align:right;font-weight:600;font-size:10px;color:#666666';th.rowSpan=2;htr1.appendChild(th);});
   thead2.appendChild(htr1);
 
   // 下段: 各イベント名
@@ -1615,7 +1599,7 @@ function runSim(){
   Object.keys(activeGroups).forEach(function(gName){
     activeGroups[gName].forEach(function(ev){
       const th=document.createElement('th');
-      th.textContent=ev.label;th.style.cssText='padding:3px 5px;text-align:right;font-weight:600;font-size:10px;color:#991b1b;white-space:nowrap;background:#faf2ee';
+      th.textContent=ev.label;th.style.cssText='padding:3px 5px;text-align:right;font-weight:600;font-size:10px;color:#991b1b;white-space:nowrap;background:#fff5f5';
       htr2.appendChild(th);
     });
   });
@@ -1639,8 +1623,8 @@ function runSim(){
     if(y.age===drawdownAge&&!y.isRetire){const b=document.createElement('span');b.className='sim-badge-draw';b.textContent='切崩';agePrimary.appendChild(b);}
     ageTd.appendChild(agePrimary);
     // 列順: 年齢・投資信託・元本・運用益・各イベント・現金(比較)・現金・総資産・切崩
-    const rowCells=[ageTd,mkTd(fmtMan(y.value),'#0f3d3a'),mkTd(fmtMan(y.principal),'#5f6d68'),mkTd(fmtMan(y.gain),'#1d6e4f')];
-    if(activeEvents.length>0) rowCells.push(mkTd(fmtMan(y.cashNoEvent||0),'#94a097'));
+    const rowCells=[ageTd,mkTd(fmtMan(y.value),'#1d4ed8'),mkTd(fmtMan(y.principal),'#666666'),mkTd(fmtMan(y.gain),'#166534')];
+    if(activeEvents.length>0) rowCells.push(mkTd(fmtMan(y.cashNoEvent||0),'#999999'));
     Object.keys(activeGroups).forEach(function(gName){
       // このグループのcontextAge情報を探す
       const ctx=contextAges.find(function(c){return c.group===gName;});
@@ -1649,9 +1633,9 @@ function runSim(){
         const c=Math.abs(rawVal);
         const isEvInc=ev.isIncome===true;
         const td=document.createElement('td');
-        td.style.cssText='padding:5px 6px;text-align:right;white-space:nowrap;color:'+(isEvInc?'#1d6e4f':'#b03a3a');
-        if(ei===0) td.style.borderLeft='2px solid #e0b8b8';
-        if(ei===activeGroups[gName].length-1) td.style.borderRight='2px solid #e0b8b8';
+        td.style.cssText='padding:5px 6px;text-align:right;white-space:nowrap;color:'+(isEvInc?'#166534':'#991b1b');
+        if(ei===0) td.style.borderLeft='2px solid #fca5a5';
+        if(ei===activeGroups[gName].length-1) td.style.borderRight='2px solid #fca5a5';
         // 先頭列にサブ年齢を表示
         if(ei===0&&ctx){
           let subAge=null;
@@ -1660,7 +1644,7 @@ function runSim(){
           else if(ctx.type==='pet'){subAge=ctx.currentAge+(y.age-age);if(subAge<0||subAge>18)subAge=null;}
           if(subAge!==null){
             const ageSub=document.createElement('div');
-            ageSub.style.cssText='font-size:9px;color:#1d5c54;font-weight:600;text-align:left;margin-bottom:1px';
+            ageSub.style.cssText='font-size:9px;color:#2563eb;font-weight:600;text-align:left;margin-bottom:1px';
             ageSub.textContent=ctx.label+' '+Math.round(subAge)+'歳';
             td.appendChild(ageSub);
           }
@@ -1670,12 +1654,12 @@ function runSim(){
         rowCells.push(td);
       });
     });
-    const cashTd=mkTd(fmtMan(y.cash||0),y.cash<0?'#b03a3a':'#c08a2e');
+    const cashTd=mkTd(fmtMan(y.cash||0),y.cash<0?'#991b1b':'#d97706');
     if(y.cash<0) cashTd.style.fontWeight='700';
     rowCells.push(cashTd);
-    rowCells.push(mkTd(fmtMan(y.total||y.value),'#1c2826'));
-    rowCells.push(mkTd(y.isDrawdown?fmtMan(y.drawAmt):'—','#c08a2e'));
-    rowCells.push(mkTd(y.isDrawdown?fmtMan(y.drawMonthly):'—','#c08a2e'));
+    rowCells.push(mkTd(fmtMan(y.total||y.value),'#1a1a1a'));
+    rowCells.push(mkTd(y.isDrawdown?fmtMan(y.drawAmt):'—','#d97706'));
+    rowCells.push(mkTd(y.isDrawdown?fmtMan(y.drawMonthly):'—','#d97706'));
     rowCells.forEach(function(td){tr.appendChild(td);});
     tbody.appendChild(tr);
   });
