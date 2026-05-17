@@ -1,0 +1,1519 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="資産シミュレーター">
+<title>資産シミュレーター</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;font-size:13px;color:#1a1a1a;background:#f5f5f5;min-height:100vh}
+.app{max-width:600px;margin:0 auto;padding:12px}
+h1{font-size:19px;font-weight:700;margin-bottom:2px}
+.subtitle{font-size:11px;color:#888;margin-bottom:12px}
+.card{background:#fff;border-radius:12px;border:1px solid #eee;padding:14px;margin-bottom:10px}
+.header-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.refresh-btn{font-size:12px;color:#2563eb;background:none;border:none;cursor:pointer;padding:0}
+.login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:90vh;gap:18px;text-align:center;padding:24px}
+.login-title{font-size:22px;font-weight:700}
+.login-desc{font-size:13px;color:#666;line-height:1.6}
+.google-btn{display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid #ddd;border-radius:10px;padding:12px 22px;font-size:14px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.status-bar{padding:8px 12px;border-radius:8px;font-size:12px;margin-bottom:10px;display:none}
+.status-bar.ok{background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;display:block}
+.status-bar.err{background:#fef2f2;color:#991b1b;border:1px solid #fecaca;display:block}
+.status-bar.loading{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;display:block}
+.import-box{width:100%;max-width:380px;border:1.5px solid #e5e7eb;border-radius:14px;padding:16px;background:#fafafa}
+.import-box-title{font-size:14px;font-weight:700;margin-bottom:6px}
+.import-box-desc{font-size:11px;color:#888;line-height:1.6;margin-bottom:12px}
+.import-type{display:flex;gap:8px;margin-bottom:10px}
+.import-type-btn{flex:1;padding:8px 0;border:1.5px solid #ddd;border-radius:8px;background:#fff;cursor:pointer;font-size:13px;color:#555;transition:all .15s}
+.import-type-btn.active{border-color:#2563eb;background:#eff6ff;color:#1d4ed8;font-weight:600}
+.import-ratio-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.import-ratio-row label{font-size:12px;color:#666;flex:1;text-align:left}
+.import-ratio-row input{width:50px;padding:5px 6px;border:1px solid #ddd;border-radius:6px;font-size:13px;text-align:center}
+.import-ratio-pct{font-size:13px;font-weight:600;color:#2563eb;min-width:46px}
+.csv-drop{display:flex;flex-direction:column;align-items:center;gap:6px;padding:20px 12px;border:2px dashed #cbd5e1;border-radius:10px;background:#fff;cursor:pointer;transition:all .15s}
+.csv-drop:hover,.csv-drop.dragover{border-color:#2563eb;background:#eff6ff}
+.csv-drop-icon{font-size:28px}
+.csv-drop-text{font-size:13px;font-weight:600;color:#475569;line-height:1.6}
+.csv-drop-text small{font-size:11px;font-weight:400;color:#94a3b8}
+.login-or{font-size:11px;color:#aaa;position:relative}
+.import-summary{width:100%;max-width:380px;text-align:left;font-size:12px;background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;border-radius:10px;padding:10px 12px;display:none}
+.import-summary.show{display:block}
+.import-summary.warn{background:#fffbeb;border-color:#fde68a;color:#92400e}
+.header-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.refresh-btn{font-size:12px;color:#2563eb;background:none;border:none;cursor:pointer;padding:0}
+/* 資産シミュレーター（モバイル） */
+.sim-wrap{padding:2px 0}
+.sim-inputs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.sim-input-group{display:flex;flex-direction:column;gap:3px}
+.sim-label{font-size:10px;color:#666;font-weight:500;line-height:1.3}
+.sim-input{padding:6px 8px;border:1px solid #ddd;border-radius:7px;font-size:13px;width:100%}
+.sim-input:focus{outline:none;border-color:#2563eb}
+.sim-section-title{font-size:12px;font-weight:700;color:#1a1a1a;margin:14px 0 8px;padding-bottom:5px;border-bottom:2px solid #f0f0f0}
+.sim-btn{padding:7px 14px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;margin-top:4px}
+.sim-result-cards{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:14px}
+.sim-card{background:#f8f8f8;border-radius:10px;padding:10px 12px;text-align:center}
+.sim-card-label{font-size:10px;color:#888;margin-bottom:3px}
+.sim-card-val{font-size:17px;font-weight:700}
+.sim-card-sub{font-size:10px;color:#888;margin-top:2px}
+.sim-chart-wrap{width:100%;overflow-x:auto;margin-bottom:14px;-webkit-overflow-scrolling:touch}
+.sim-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.sim-table{width:100%;border-collapse:collapse;font-size:10px}
+.sim-table th{padding:4px 5px;background:#f8f8f8;color:#888;font-weight:600;text-align:right;border-bottom:1px solid #eee;white-space:nowrap}
+.sim-table th:first-child{text-align:left}
+.sim-table td{padding:4px 5px;border-bottom:1px solid #f5f5f5;text-align:right;white-space:nowrap}
+.sim-table td:first-child{text-align:left;font-weight:500}
+.sim-table tr.sim-highlight{background:#eff6ff;font-weight:700}
+.sim-table tr.sim-drawdown{background:#fef9c3}
+.sim-badge-retire{display:inline-block;background:#2563eb;color:#fff;font-size:9px;padding:1px 5px;border-radius:4px;margin-left:4px;vertical-align:middle}
+.sim-badge-draw{display:inline-block;background:#d97706;color:#fff;font-size:9px;padding:1px 5px;border-radius:4px;margin-left:4px;vertical-align:middle}
+</style>
+</head>
+<body>
+
+<div id="login-screen" class="login-screen">
+  <div style="font-size:44px">📈</div>
+  <div class="login-title">資産シミュレーター</div>
+  <div class="login-desc">あなたの資産がこれからどう推移するかを<br>シミュレーションします</div>
+  <button class="google-btn" id="google-login-btn">
+    <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+    Googleでログインして始める
+  </button>
+  <button class="skip-btn" id="skip-login-btn">ログインせずに使う（保存なし）</button>
+  <div id="login-status" class="status-bar"></div>
+</div>
+
+<div id="main-app" class="app" style="display:none">
+  <div class="header-row">
+    <div><h1>資産シミュレーター</h1><p class="subtitle" id="subtitle">将来の資産を試算します</p></div>
+  </div>
+  <div id="status-bar" class="status-bar"></div>
+  <div id="sim-content"></div>
+</div>
+
+<script>
+const CLIENT_ID='293451920862-fjot50d3g4iac2afqq0eu39ssfggik6a.apps.googleusercontent.com';
+const SCOPES='https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.appdata';
+const SIM_PROFILE_FILE='kakeibo_sim_profiles.json';
+let accessToken=null;
+
+// ライフイベント・月収支データ（外側スコープ）
+let simEvents=[];
+let simEventId=0;
+let simMonthData=[{label:'',income:0,expense:0}];
+let simRenderMonthRows=null;
+let simRecalcMonthly=null;
+
+// ===== 表示ヘルパー =====
+function fmt(n){return(n<0?'-':'')+'\u00a5'+Math.abs(Math.round(n)).toLocaleString('ja-JP');}
+function fmtM(n,maxVal){
+  const m=Math.abs(maxVal!=null?maxVal:n);
+  if(m>=100000) return '\u00a5'+Math.round(n/10000).toLocaleString('ja-JP')+'\u4e07';
+  if(m>=10000) return '\u00a5'+(n/10000).toFixed(1)+'\u4e07';
+  return '\u00a5'+Math.round(n).toLocaleString('ja-JP');
+}
+function fmtMan(n){
+  if(Math.abs(n)>=100000000) return (n/100000000).toFixed(2)+'\u5104\u5186';
+  if(Math.abs(n)>=10000) return Math.round(n/10000).toLocaleString('ja-JP')+'\u4e07\u5186';
+  return n.toLocaleString('ja-JP')+'\u5186';
+}
+function mkTd(text,color){
+  const td=document.createElement('td');td.textContent=text;
+  if(color) td.style.color=color;return td;
+}
+function getSimVal(id){return parseFloat(document.getElementById(id).value)||0;}
+
+// ===== 画面遷移 =====
+function showStatus(type,msg){const el=document.getElementById('status-bar');if(!el)return;el.className='status-bar '+type;el.textContent=msg;el.style.display=msg?'block':'none';}
+function showLoginScreen(){document.getElementById('login-screen').style.display='flex';document.getElementById('main-app').style.display='none';}
+function showMainApp(){document.getElementById('login-screen').style.display='none';document.getElementById('main-app').style.display='block';}
+
+function simFindDriveFile(){
+  return fetch("https://www.googleapis.com/drive/v3/files?q=name='"+SIM_PROFILE_FILE+"' and trashed=false&spaces=appDataFolder&fields=files(id,name)",
+    {headers:{Authorization:'Bearer '+accessToken}})
+    .then(function(res){return res.json();})
+    .then(function(data){return data.files&&data.files.length?data.files[0]:null;});
+}
+// Driveからプロファイルを読み込む
+function simLoadProfilesFromDrive(){
+  if(!accessToken) return Promise.resolve({});
+  return simFindDriveFile().then(function(file){
+    if(!file) return {};
+    return fetch('https://www.googleapis.com/drive/v3/files/'+file.id+'?alt=media',
+      {headers:{Authorization:'Bearer '+accessToken}})
+      .then(function(res){return res.json();})
+      .then(function(json){return (json&&typeof json==='object')?json:{};});
+  });
+}
+// Driveにプロファイルを保存（新規作成時は appDataFolder に入れる）
+function simSaveProfilesToDrive(profiles){
+  if(!accessToken) return Promise.reject(new Error('未ログイン'));
+  return simFindDriveFile().then(function(file){
+    const blob=new Blob([JSON.stringify(profiles)],{type:'application/json'});
+    const meta=file?{name:SIM_PROFILE_FILE}:{name:SIM_PROFILE_FILE,parents:['appDataFolder']};
+    const form=new FormData();
+    form.append('metadata',new Blob([JSON.stringify(meta)],{type:'application/json'}));
+    form.append('file',blob);
+    const url=file
+      ? 'https://www.googleapis.com/upload/drive/v3/files/'+file.id+'?uploadType=multipart'
+      : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+    return fetch(url,{method:file?'PATCH':'POST',headers:{Authorization:'Bearer '+accessToken},body:form});
+  });
+}
+// 2つのプロファイル集合をマージ（_savedAt / _deletedAt の新しい方を採用）
+function simMergeProfiles(a,b){
+  const names={};
+  [a,b].forEach(function(set){Object.keys(set||{}).forEach(function(k){names[k]=true;});});
+  const out={};
+  Object.keys(names).forEach(function(k){
+    const pa=(a&&a[k])||null,pb=(b&&b[k])||null;
+    function stamp(p){if(!p)return -1;return Math.max(p._savedAt||0,p._deletedAt||0);}
+    const winner=stamp(pb)>=stamp(pa)?pb:pa;
+    if(winner) out[k]=winner;
+  });
+  return out;
+}
+// 表示用：削除マーカーを除いた実プロファイルだけを返す
+function simActiveProfiles(profiles){
+  const out={};
+  Object.keys(profiles||{}).forEach(function(k){
+    if(profiles[k]&&!profiles[k]._deletedAt) out[k]=profiles[k];
+  });
+  return out;
+}
+// ローカルキャッシュ（localStorage）の読み書き
+function simLocalGet(){try{return JSON.parse(localStorage.getItem('sim_profiles')||'{}');}catch(e){return {};}}
+function simLocalSet(p){try{localStorage.setItem('sim_profiles',JSON.stringify(p));}catch(e){}}
+
+function renderSim(){
+  const container=document.getElementById('sim-content');
+  if(container.querySelector('.sim-wrap')){
+    // UIは既にあるのでイベントリストとシミュだけ更新
+    renderEvents();
+    runSim();
+    return;
+  }
+  container.innerHTML='';
+  const wrap=document.createElement('div');wrap.className='sim-wrap';
+
+  const profTitle=document.createElement('div');profTitle.className='sim-section-title';profTitle.textContent='👤 プロファイル';
+  wrap.appendChild(profTitle);
+  const profBar=document.createElement('div');profBar.style.cssText='display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:16px';
+  const profSel=document.createElement('select');profSel.id='sim-prof-sel';profSel.className='sim-input';profSel.style.cssText='flex:1;min-width:120px;max-width:200px';
+  const profNameInp=document.createElement('input');profNameInp.type='text';profNameInp.id='sim-prof-name';profNameInp.className='sim-input';profNameInp.placeholder='プロファイル名';profNameInp.style.cssText='flex:1;min-width:120px;max-width:200px';
+  const profSaveBtn=document.createElement('button');profSaveBtn.textContent='💾 保存';profSaveBtn.className='sim-btn';profSaveBtn.style.cssText='padding:7px 14px;font-size:12px';
+  const profDelBtn=document.createElement('button');profDelBtn.textContent='🗑 削除';profDelBtn.className='sim-btn';profDelBtn.style.cssText='padding:7px 14px;font-size:12px;background:#ef4444';
+  profBar.appendChild(profSel);profBar.appendChild(profNameInp);profBar.appendChild(profSaveBtn);profBar.appendChild(profDelBtn);
+  wrap.appendChild(profBar);
+
+  // プロファイルの読み込み: localStorageキャッシュを即返し、裏でDriveと同期
+  function loadProfiles(cb){
+    const local=simLocalGet();
+    cb(simActiveProfiles(local));
+    simLoadProfilesFromDrive().then(function(remote){
+      const merged=simMergeProfiles(local,remote);
+      if(JSON.stringify(merged)!==JSON.stringify(local)){
+        simLocalSet(merged);
+        cb(simActiveProfiles(merged));
+      }
+    }).catch(function(e){console.warn('プロファイルのDrive同期に失敗:',e.message);});
+  }
+  // プロファイルの保存: localStorageに保存しつつ、Driveにもマージして保存
+  function saveProfiles(profiles,cb){
+    simLocalSet(profiles);
+    if(cb)cb();
+    simLoadProfilesFromDrive().then(function(remote){
+      const merged=simMergeProfiles(remote,profiles);
+      return simSaveProfilesToDrive(merged).then(function(){simLocalSet(merged);});
+    }).catch(function(e){console.warn('プロファイルのDrive保存に失敗:',e.message);});
+  }
+  function getSimFields(){
+    const fields=['sim-age','sim-retire','sim-cash','sim-invest','sim-monthly','sim-rate','sim-stop-age','sim-drawdown-age','sim-drawdown-rate'];
+    const obj=fields.reduce(function(o,id){o[id]=document.getElementById(id).value;return o;},{});
+    // ライフイベントも保存（idを除いて保存）
+    obj._events=simEvents.map(function(ev){return Object.assign({},ev,{id:undefined});});
+    // 月間収支UIの値も保存
+    const mi=document.getElementById('sim-monthly-invest');
+    if(mi) obj._monthlyInvest=mi.value;
+    const mb=document.getElementById('sim-monthly-balance');
+    if(mb) obj._monthlyBalance=mb.textContent;
+    // 入力した複数月の収支データを保存
+    obj._monthData=simMonthData.map(function(m){return {label:m.label,income:m.income,expense:m.expense};});
+    return obj;
+  }
+  function setSimFields(data){
+    const fields=['sim-age','sim-retire','sim-cash','sim-invest','sim-monthly','sim-rate','sim-stop-age','sim-drawdown-age','sim-drawdown-rate'];
+    fields.forEach(function(id){const el=document.getElementById(id);if(el&&data[id]!==undefined)el.value=data[id];});
+    // ライフイベント復元
+    if(data._events&&Array.isArray(data._events)){
+      simEvents=data._events.map(function(ev){return Object.assign({},ev,{id:simEventId++});});
+      renderEvents();
+    }
+    // 入力した複数月の収支データを復元
+    if(data._monthData&&Array.isArray(data._monthData)&&data._monthData.length){
+      simMonthData=data._monthData.map(function(m){return {label:m.label||'',income:m.income||0,expense:m.expense||0};});
+    } else {
+      simMonthData=[{label:'',income:0,expense:0}];
+    }
+    if(simRenderMonthRows) simRenderMonthRows();
+    // 月間現金増加の値を復元
+    if(data._monthlyInvest!==undefined){
+      const mi=document.getElementById('sim-monthly-invest');
+      if(mi) mi.value=data._monthlyInvest;
+    }
+    if(simRecalcMonthly) simRecalcMonthly();
+    runSim();
+  }
+  function refreshProfSel(profiles,selected){profSel.innerHTML='<option value="">── 選択 ──</option>';Object.keys(profiles).sort().forEach(function(name){const o=document.createElement('option');o.value=name;o.textContent=name;if(name===selected)o.selected=true;profSel.appendChild(o);});}
+  loadProfiles(function(profiles){refreshProfSel(profiles,'');});
+  // プロファイル切り替えは名前欄を更新するだけ（即座に反映しない）
+  profSel.addEventListener('change',function(){const name=profSel.value;if(name)profNameInp.value=name;});
+  // 読み込みボタン
+
+  profSaveBtn.addEventListener('click',function(){
+    const name=profNameInp.value.trim();
+    if(!name){alert('プロファイル名を入力してください');return;}
+    const profiles=simLocalGet();
+    const fields=getSimFields();
+    fields._savedAt=Date.now();
+    profiles[name]=fields;
+    saveProfiles(profiles,function(){
+      refreshProfSel(simActiveProfiles(profiles),name);
+      profSaveBtn.textContent='✓ 保存済';
+      setTimeout(function(){profSaveBtn.textContent='💾 保存';},1500);
+    });
+  });
+  const profLoadBtn=document.createElement('button');profLoadBtn.textContent='📂 読み込み';profLoadBtn.className='sim-btn';profLoadBtn.style.cssText='padding:7px 14px;font-size:12px;background:#6366f1';
+  profLoadBtn.addEventListener('click',function(){
+    const name=profSel.value;
+    if(!name){alert('読み込むプロファイルを選択してください');return;}
+    loadProfiles(function(profiles){
+      if(profiles[name]){
+        profNameInp.value=name;
+        simEvents=[];simEventId=0;
+        setSimFields(profiles[name]);
+        profLoadBtn.textContent='✓ 読み込み済';
+        setTimeout(function(){profLoadBtn.textContent='📂 読み込み';},1500);
+      }
+    });
+  });
+  profBar.appendChild(profLoadBtn);
+  profDelBtn.addEventListener('click',function(){
+    const name=profSel.value;
+    if(!name){alert('削除するプロファイルを選択してください');return;}
+    if(!confirm(name+'を削除しますか？'))return;
+    const profiles=simLocalGet();
+    profiles[name]={_deletedAt:Date.now()};
+    saveProfiles(profiles,function(){
+      refreshProfSel(simActiveProfiles(profiles),'');
+      profNameInp.value='';
+    });
+  });
+
+
+  // 月々の収支入力セクション（複数月の実績を入力して平均を算出）
+  const linkTitle=document.createElement('div');linkTitle.className='sim-section-title';linkTitle.textContent='💰 毎月の収支を入力';
+  wrap.appendChild(linkTitle);
+
+  const linkCard=document.createElement('div');
+  linkCard.style.cssText='background:#f8faff;border:1.5px solid #bfdbfe;border-radius:12px;padding:16px;margin-bottom:16px';
+
+  const hint=document.createElement('div');
+  hint.style.cssText='font-size:11px;color:#1d4ed8;line-height:1.6;margin-bottom:10px';
+  hint.innerHTML='家計簿アプリなどで把握した<b>数ヶ月分の収入・支出</b>を入力すると、その平均を毎月の収支として使います。1ヶ月だけでもOKです。';
+  linkCard.appendChild(hint);
+
+  // 月ごとの入力行を入れるコンテナ
+  const monthRows=document.createElement('div');monthRows.id='sim-month-rows';
+  monthRows.style.cssText='display:flex;flex-direction:column;gap:6px;margin-bottom:8px';
+  linkCard.appendChild(monthRows);
+
+  // 月収支データ（{label, income, expense}）
+  // simMonthData は外側スコープに保持（プロファイル保存のため）
+  function renderMonthRows(){
+    monthRows.innerHTML='';
+    // ヘッダー
+    const head=document.createElement('div');
+    head.style.cssText='display:flex;gap:6px;font-size:10px;color:#888;font-weight:600;padding:0 2px';
+    head.innerHTML='<div style="flex:1.2">月（任意）</div><div style="flex:1;text-align:right">収入(円)</div><div style="flex:1;text-align:right">支出(円)</div><div style="width:28px"></div>';
+    monthRows.appendChild(head);
+
+    simMonthData.forEach(function(row,idx){
+      const r=document.createElement('div');
+      r.style.cssText='display:flex;gap:6px;align-items:center';
+
+      const labelInp=document.createElement('input');labelInp.type='text';labelInp.placeholder='例: 1月';
+      labelInp.value=row.label||'';
+      labelInp.style.cssText='flex:1.2;padding:6px 8px;border:1px solid #ddd;border-radius:6px;font-size:13px';
+      labelInp.addEventListener('input',function(){simMonthData[idx].label=labelInp.value;});
+
+      const incInp=document.createElement('input');incInp.type='number';incInp.placeholder='0';
+      incInp.value=(row.income!=null?row.income:'');
+      incInp.style.cssText='flex:1;padding:6px 8px;border:1px solid #ddd;border-radius:6px;font-size:13px;text-align:right;color:#166534';
+      incInp.addEventListener('input',function(){simMonthData[idx].income=parseFloat(incInp.value)||0;recalcMonthly();});
+
+      const expInp=document.createElement('input');expInp.type='number';expInp.placeholder='0';
+      expInp.value=(row.expense!=null?row.expense:'');
+      expInp.style.cssText='flex:1;padding:6px 8px;border:1px solid #ddd;border-radius:6px;font-size:13px;text-align:right;color:#991b1b';
+      expInp.addEventListener('input',function(){simMonthData[idx].expense=parseFloat(expInp.value)||0;recalcMonthly();});
+
+      const delBtn=document.createElement('button');delBtn.textContent='✕';
+      delBtn.style.cssText='width:28px;height:30px;border:none;background:#fee2e2;color:#991b1b;border-radius:6px;cursor:pointer;font-size:12px;flex-shrink:0';
+      delBtn.addEventListener('click',function(){
+        if(simMonthData.length<=1){simMonthData[0]={label:'',income:0,expense:0};}
+        else{simMonthData.splice(idx,1);}
+        renderMonthRows();recalcMonthly();
+      });
+
+      r.appendChild(labelInp);r.appendChild(incInp);r.appendChild(expInp);r.appendChild(delBtn);
+      monthRows.appendChild(r);
+    });
+  }
+
+  // 行を追加するボタン
+  const addMonthBtn=document.createElement('button');
+  addMonthBtn.textContent='＋ 月を追加';addMonthBtn.className='sim-btn';
+  addMonthBtn.style.cssText='padding:6px 14px;font-size:12px;background:#2563eb;margin-bottom:12px';
+  addMonthBtn.addEventListener('click',function(){
+    simMonthData.push({label:'',income:0,expense:0});
+    renderMonthRows();recalcMonthly();
+  });
+  linkCard.appendChild(addMonthBtn);
+
+  // 平均の計算式表示
+  const calcRow=document.createElement('div');
+  calcRow.style.cssText='display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 14px;background:#fff;border-radius:8px;border:1px solid #e0e7ff;font-size:13px';
+
+  function makeCalcBox(id,label,color,editable,unit){
+    const box=document.createElement('div');box.style.cssText='display:flex;flex-direction:column;align-items:center;gap:2px;min-width:90px';
+    const lbl=document.createElement('div');lbl.style.cssText='font-size:10px;color:#888';lbl.textContent=label;
+    if(editable){
+      const inp=document.createElement('input');inp.type='number';inp.id=id;
+      inp.style.cssText='width:90px;text-align:center;padding:5px;border:1.5px solid '+color+';border-radius:6px;font-size:14px;font-weight:700;color:'+color;
+      inp.addEventListener('input',updateCashCalc);
+      box.appendChild(lbl);box.appendChild(inp);
+    } else {
+      const val=document.createElement('div');val.id=id;
+      val.style.cssText='font-size:14px;font-weight:700;color:'+color+';padding:5px 8px;background:#f8f8f8;border-radius:6px;min-width:90px;text-align:center';
+      val.textContent='—';
+      box.appendChild(lbl);box.appendChild(val);
+    }
+    if(unit){const u=document.createElement('div');u.style.cssText='font-size:10px;color:#aaa';u.textContent=unit;box.appendChild(u);}
+    return box;
+  }
+  function makeOp(symbol){
+    const op=document.createElement('div');op.style.cssText='font-size:18px;color:#aaa;font-weight:300;flex-shrink:0';op.textContent=symbol;return op;
+  }
+
+  calcRow.appendChild(makeCalcBox('sim-monthly-balance','月平均収支','#166534',false,'/月'));
+  calcRow.appendChild(makeOp('−'));
+  calcRow.appendChild(makeCalcBox('sim-monthly-invest','投資積立額 (万円)','#2563eb',true,'/月'));
+  calcRow.appendChild(makeOp('='));
+  calcRow.appendChild(makeCalcBox('sim-calc-cash-gain','現金増加額','#d97706',false,'/月'));
+  linkCard.appendChild(calcRow);
+
+  const linkPeriodInfo=document.createElement('div');linkPeriodInfo.id='sim-period-info';
+  linkPeriodInfo.style.cssText='font-size:11px;color:#888;margin-top:8px;text-align:right';
+  linkPeriodInfo.textContent='月を入力すると平均が計算されます';
+  linkCard.appendChild(linkPeriodInfo);
+  wrap.appendChild(linkCard);
+
+  let _monthlyBalance=0;
+
+  // 入力された複数月から平均収支を再計算
+  function recalcMonthly(){
+    // 収入または支出のどちらかが入っている行だけを「入力済み」とみなす
+    const filled=simMonthData.filter(function(m){return (m.income||0)!==0||(m.expense||0)!==0;});
+    if(filled.length===0){
+      _monthlyBalance=0;
+      document.getElementById('sim-monthly-balance').textContent='—';
+      document.getElementById('sim-period-info').textContent='月を入力すると平均が計算されます';
+      updateCashCalc();
+      return;
+    }
+    const totalInc=filled.reduce(function(s,m){return s+(m.income||0);},0);
+    const totalExp=filled.reduce(function(s,m){return s+(m.expense||0);},0);
+    const avgInc=Math.round(totalInc/filled.length);
+    const avgExp=Math.round(totalExp/filled.length);
+    _monthlyBalance=avgInc-avgExp;
+    document.getElementById('sim-monthly-balance').textContent=fmt(_monthlyBalance);
+    document.getElementById('sim-period-info').textContent=
+      '収入 '+fmt(avgInc)+' − 支出 '+fmt(avgExp)+'（'+filled.length+'ヶ月の平均）';
+    updateCashCalc();
+  }
+
+  function updateCashCalc(){
+    const monthlyInvestWan=parseFloat(document.getElementById('sim-monthly-invest').value)||0;
+    const monthlyInvest=monthlyInvestWan*10000;
+    const cashGain=_monthlyBalance-monthlyInvest;
+    const cashGainEl=document.getElementById('sim-calc-cash-gain');
+    cashGainEl.textContent=fmt(Math.round(cashGain));
+    cashGainEl.style.color=cashGain>=0?'#d97706':'#991b1b';
+    // 基本設定の積立額・現金増加額に自動反映
+    const monthlyEl=document.getElementById('sim-monthly');
+    if(monthlyEl) monthlyEl.value=monthlyInvestWan;
+    const cashGainSimEl=document.getElementById('sim-cash-gain');
+    if(cashGainSimEl) cashGainSimEl.value=Math.round(cashGain/10000*10)/10;
+    runSim();
+  }
+
+  // 初期描画
+  renderMonthRows();
+  // simRenderMonthRows / simRecalcMonthly を外から呼べるよう公開（プロファイル復元用）
+  simRenderMonthRows=renderMonthRows;
+  simRecalcMonthly=recalcMonthly;
+
+  const inputTitle=document.createElement('div');inputTitle.className='sim-section-title';inputTitle.textContent='📊 基本設定';
+  wrap.appendChild(inputTitle);
+  const grid=document.createElement('div');grid.className='sim-inputs';
+  const fields=[
+    {id:'sim-age',label:'現在の年齢',placeholder:'例: 35',val:'35'},
+    {id:'sim-retire',label:'退職・目標年齢',placeholder:'例: 65',val:'65'},
+    {id:'sim-cash',label:'現在の現金 (万円)',placeholder:'例: 500',val:'500'},
+    {id:'sim-invest',label:'現在の投資信託 (万円)',placeholder:'例: 300',val:'300'},
+    {id:'sim-monthly',label:'毎月の投資信託の積立額 (万円)（↑から自動反映）',placeholder:'例: 5',val:'5'},
+    {id:'sim-rate',label:'年間利回り (%)',placeholder:'例: 7',val:'7'},
+    {id:'sim-cash-gain',label:'毎月の現金の増加額 (万円)（↑から自動反映）',placeholder:'例: 10',val:'10'},
+    {id:'sim-stop-age',label:'積立停止年齢',placeholder:'例: 65',val:'65'},
+    {id:'sim-drawdown-age',label:'切り崩し開始年齢',placeholder:'例: 65',val:'65'},
+    {id:'sim-drawdown-rate',label:'切り崩し率 (%/年)',placeholder:'例: 4',val:'4'},
+  ];
+  fields.forEach(function(f){
+    const g=document.createElement('div');g.className='sim-input-group';
+    const l=document.createElement('label');l.className='sim-label';l.textContent=f.label;l.htmlFor=f.id;
+    const inp=document.createElement('input');inp.className='sim-input';inp.type='number';inp.id=f.id;inp.placeholder=f.placeholder;inp.value=f.val;
+    inp.addEventListener('input',runSim);
+    g.appendChild(l);g.appendChild(inp);grid.appendChild(g);
+  });
+  wrap.appendChild(grid);
+  // ===== ライフイベントセクション =====
+  const evTitle=document.createElement('div');evTitle.className='sim-section-title';evTitle.textContent='🎯 ライフイベント';
+  wrap.appendChild(evTitle);
+
+  const evDesc=document.createElement('div');evDesc.style.cssText='font-size:12px;color:#888;margin-bottom:10px';
+  evDesc.textContent='現金から引かれるイベントを設定。グラフで「なし」との差額を比較できます。';
+  wrap.appendChild(evDesc);
+
+  // プリセット追加ボタン
+  const presetBar=document.createElement('div');presetBar.style.cssText='display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px';
+  const presets=[
+    {name:'🚗 車',group:'🚗 車',patterns:[
+      {label:'軽自動車（維持費控えめ）',desc:'ガソリン代・車検・7年毎買替',items:[
+        {label:'ガソリン・維持費',monthly:1.5,oneTime:0,interval:0,endAge:95},
+        {label:'車検',monthly:0,oneTime:7,interval:2,endAge:95},
+        {label:'車買い替え',monthly:0,oneTime:150,interval:7,endAge:80},
+      ]},
+      {label:'普通車（標準）',desc:'ガソリン代・車検・7年毎買替',items:[
+        {label:'ガソリン・維持費',monthly:2,oneTime:0,interval:0,endAge:95},
+        {label:'車検',monthly:0,oneTime:10,interval:2,endAge:95},
+        {label:'車買い替え',monthly:0,oneTime:300,interval:7,endAge:80},
+      ]},
+      {label:'高級車',desc:'維持費高め・5年毎買替',items:[
+        {label:'ガソリン・維持費',monthly:4,oneTime:0,interval:0,endAge:95},
+        {label:'車検',monthly:0,oneTime:20,interval:2,endAge:95},
+        {label:'車買い替え',monthly:0,oneTime:600,interval:5,endAge:80},
+      ]},
+    ]},
+    {name:'🏠 住宅',group:'🏠 住宅',patterns:[
+      {label:'マンション購入',desc:'管理費・固定資産税・大規模修繕',items:[
+        {label:'管理費・修繕積立',monthly:3,oneTime:0,interval:0,endAge:95},
+        {label:'固定資産税',monthly:0,oneTime:12,interval:1,endAge:95},
+        {label:'大規模修繕',monthly:0,oneTime:100,interval:12,endAge:95},
+      ]},
+      {label:'一戸建て購入',desc:'固定資産税・リフォーム等',items:[
+        {label:'固定資産税',monthly:0,oneTime:15,interval:1,endAge:95},
+        {label:'外壁・屋根リフォーム',monthly:0,oneTime:150,interval:15,endAge:95},
+        {label:'設備交換（水回り等）',monthly:0,oneTime:50,interval:10,endAge:95},
+      ]},
+      {label:'賃貸継続',desc:'更新料のみ',items:[
+        {label:'更新料',monthly:0,oneTime:20,interval:2,endAge:95},
+      ]},
+    ]},
+    {name:'👶 子供',group:'👶 子供',special:'child'},
+    {name:'💍 結婚式',group:'💍 結婚式',patterns:[
+      {label:'こぢんまり（30名程度）',desc:'国内・シンプル婚',items:[
+        {label:'結婚式費用',monthly:0,oneTime:150,interval:0,endAge:95},
+      ]},
+      {label:'標準（60名程度）',desc:'国内・一般的な式',items:[
+        {label:'結婚式費用',monthly:0,oneTime:300,interval:0,endAge:95},
+      ]},
+      {label:'盛大（100名以上）',desc:'ホテル・豪華',items:[
+        {label:'結婚式費用',monthly:0,oneTime:500,interval:0,endAge:95},
+      ]},
+      {label:'海外挙式',desc:'海外・少人数',items:[
+        {label:'結婚式費用',monthly:0,oneTime:200,interval:0,endAge:95},
+        {label:'新婚旅行',monthly:0,oneTime:100,interval:0,endAge:95},
+      ]},
+    ]},
+    {name:'✈️ 旅行',group:'✈️ 旅行',patterns:[
+      {label:'国内旅行（年1回）',desc:'温泉・観光地など',items:[
+        {label:'国内旅行',monthly:0,oneTime:20,interval:1,endAge:95},
+      ]},
+      {label:'海外旅行（年1回）',desc:'アジア圏など',items:[
+        {label:'海外旅行',monthly:0,oneTime:40,interval:1,endAge:95},
+      ]},
+      {label:'豪華旅行（年1回）',desc:'欧米・リゾートなど',items:[
+        {label:'豪華旅行',monthly:0,oneTime:100,interval:1,endAge:95},
+      ]},
+    ]},
+    {name:'💰 臨時収入・相続',group:'💰 臨時収入',patterns:[
+      {label:'相続・贈与',desc:'親などからの相続・贈与',items:[{label:'相続・贈与',monthly:0,oneTime:500,interval:0,endAge:95,isIncome:true}]},
+      {label:'退職金',desc:'退職時の一時金',items:[{label:'退職金',monthly:0,oneTime:1000,interval:0,endAge:95,isIncome:true}]},
+      {label:'不動産売却',desc:'家・土地の売却益',items:[{label:'不動産売却益',monthly:0,oneTime:2000,interval:0,endAge:95,isIncome:true}]},
+      {label:'副業・投資収入',desc:'月次の副収入',items:[{label:'副業・投資収入',monthly:5,oneTime:0,interval:0,endAge:95,isIncome:true}]},
+    ]},
+    {name:'🎓 子供の独立支援',group:'🎓 独立支援',patterns:[
+      {label:'引越し・家具等援助',desc:'子供が一人暮らしを始める際',items:[
+        {label:'独立支援金',monthly:0,oneTime:100,interval:0,endAge:95},
+      ]},
+    ]},
+    {name:'🏥 医療・介護',group:'🏥 医療・介護',patterns:[
+      {label:'医療費・薬代（高齢期）',desc:'65歳以降の医療費増加分',items:[
+        {label:'医療費増加分',monthly:2,oneTime:0,interval:0,endAge:95},
+      ]},
+      {label:'介護費用',desc:'親または自分の介護',items:[
+        {label:'介護費用',monthly:5,oneTime:0,interval:0,endAge:95},
+      ]},
+    ]},
+  ];
+
+  // パターン選択モーダル
+  function showPatternModal(preset){
+    let modal=document.getElementById('sim-pattern-modal');
+    if(modal) modal.remove();
+    modal=document.createElement('div');modal.id='sim-pattern-modal';
+    modal.style.cssText='position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center';
+    const box=document.createElement('div');box.style.cssText='background:#fff;border-radius:14px;padding:20px;width:min(480px,95vw);max-height:80vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2)';
+    const title=document.createElement('div');title.style.cssText='font-size:16px;font-weight:700;margin-bottom:4px';title.textContent=preset.name+' のパターンを選択';
+    const sub=document.createElement('div');sub.style.cssText='font-size:12px;color:#888;margin-bottom:14px';sub.textContent='追加後に各値を調整できます';
+    box.appendChild(title);box.appendChild(sub);
+    // 開始年齢入力
+    const ageRow=document.createElement('div');ageRow.style.cssText='display:flex;align-items:center;gap:8px;margin-bottom:12px;padding:8px 10px;background:#f8f8f8;border-radius:8px';
+    const ageLbl=document.createElement('label');ageLbl.style.cssText='font-size:12px;color:#666';ageLbl.textContent='開始年齢:';
+    const ageInp=document.createElement('input');ageInp.type='number';ageInp.value=getSimVal('sim-age')||35;ageInp.style.cssText='width:60px;padding:4px 6px;border:1px solid #ddd;border-radius:6px;font-size:13px';
+    ageRow.appendChild(ageLbl);ageRow.appendChild(ageInp);box.appendChild(ageRow);
+
+    preset.patterns.forEach(function(pat){
+      const card=document.createElement('div');card.style.cssText='border:1.5px solid #e0e7ff;border-radius:10px;padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:all .15s';
+      card.onmouseover=function(){card.style.borderColor='#6366f1';card.style.background='#f5f3ff';};
+      card.onmouseout=function(){card.style.borderColor='#e0e7ff';card.style.background='#fff';};
+      const patTitle=document.createElement('div');patTitle.style.cssText='font-size:13px;font-weight:700;color:#3730a3;margin-bottom:2px';patTitle.textContent=pat.label;
+      const patDesc=document.createElement('div');patDesc.style.cssText='font-size:11px;color:#888;margin-bottom:6px';patDesc.textContent=pat.desc;
+      const patItems=document.createElement('div');patItems.style.cssText='font-size:11px;color:#555';
+      pat.items.forEach(function(item){
+        const line=document.createElement('div');
+        const parts=[];
+        if(item.monthly>0) parts.push('月'+item.monthly+'万円');
+        if(item.oneTime>0) parts.push('一時金'+item.oneTime+'万円'+(item.interval>0?'・'+item.interval+'年ごと':''));
+        line.textContent='・'+item.label+(parts.length?' ('+parts.join('/')+')'  :'');
+        patItems.appendChild(line);
+      });
+      card.appendChild(patTitle);card.appendChild(patDesc);card.appendChild(patItems);
+      card.addEventListener('click',function(){
+        const startAge=parseFloat(ageInp.value)||35;
+        pat.items.forEach(function(item){
+          addEvent({label:item.label,group:preset.group,patternName:pat.label,startAge:startAge,endAge:item.endAge||95,monthly:item.monthly,oneTime:item.oneTime,interval:item.interval});
+        });
+        renderEvents();runSim();
+        modal.remove();
+      });
+      box.appendChild(card);
+    });
+    const closeBtn=document.createElement('button');closeBtn.textContent='キャンセル';closeBtn.style.cssText='width:100%;padding:8px;margin-top:4px;background:#f0f0f0;color:#666;border:none;border-radius:8px;cursor:pointer;font-size:13px';
+    closeBtn.addEventListener('click',function(){modal.remove();});
+    box.appendChild(closeBtn);
+    modal.appendChild(box);
+    modal.addEventListener('click',function(e){if(e.target===modal)modal.remove();});
+    document.body.appendChild(modal);
+  }
+
+  function showSubOptionModal(){
+    let modal=document.getElementById('sim-pattern-modal');if(modal)modal.remove();
+    modal=document.createElement('div');modal.id='sim-pattern-modal';
+    modal.style.cssText='position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center';
+    const box=document.createElement('div');box.style.cssText='background:#fff;border-radius:14px;padding:20px;width:min(520px,95vw);max-height:85vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2)';
+    const title=document.createElement('div');title.style.cssText='font-size:16px;font-weight:700;margin-bottom:4px';title.textContent='📋 その他のライフイベント';
+    const sub=document.createElement('div');sub.style.cssText='font-size:12px;color:#888;margin-bottom:16px';sub.textContent='必要なイベントを選んで追加してください（複数選択可）';
+    box.appendChild(title);box.appendChild(sub);
+
+    const subPresets=[
+      {category:'💰 一時的な大きな支出',items:[
+        {name:'🦷 歯科治療（インプラント）',group:'🦷 歯科',patterns:[
+          {label:'インプラント1本',desc:'約30〜50万円',items:[{label:'インプラント治療',monthly:0,oneTime:40,interval:0,endAge:95}]},
+          {label:'矯正治療',desc:'約60〜100万円',items:[{label:'歯列矯正',monthly:0,oneTime:80,interval:0,endAge:95}]},
+          {label:'定期メンテナンス',desc:'年2〜4回の歯科検診',items:[{label:'歯科定期検診',monthly:0,oneTime:3,interval:0,endAge:95}]},
+        ]},
+        {name:'🐾 ペット',group:'🐾 ペット',patterns:[
+          {label:'犬（小型）',desc:'食費・医療費・トリミング等',items:[
+            {label:'犬の生活費',monthly:2,oneTime:0,interval:0,endAge:95},
+            {label:'ペット医療・ワクチン',monthly:0,oneTime:5,interval:1,endAge:95},
+          ]},
+          {label:'犬（大型）',desc:'食費多め・医療費高め',items:[
+            {label:'犬の生活費',monthly:3,oneTime:0,interval:0,endAge:95},
+            {label:'ペット医療・ワクチン',monthly:0,oneTime:8,interval:1,endAge:95},
+          ]},
+          {label:'猫',desc:'食費・医療費・用品等',items:[
+            {label:'猫の生活費',monthly:1.5,oneTime:0,interval:0,endAge:95},
+            {label:'ペット医療・ワクチン',monthly:0,oneTime:4,interval:1,endAge:95},
+          ]},
+        ]},
+        {name:'💻 リスキリング・資格取得',group:'💻 学び直し',patterns:[
+          {label:'オンライン講座・資格（年数万円）',desc:'年間費用として',items:[{label:'学習費用',monthly:0,oneTime:10,interval:1,endAge:95}]},
+          {label:'社会人大学院（MBA等）',desc:'2年間・100〜200万円',items:[{label:'大学院費用',monthly:0,oneTime:150,interval:0,endAge:95}]},
+          {label:'専門学校・スクール',desc:'1〜2年・50〜100万円',items:[{label:'スクール費用',monthly:0,oneTime:80,interval:0,endAge:95}]},
+        ]},
+        {name:'🎁 冠婚葬祭',group:'🎁 冠婚葬祭',patterns:[
+          {label:'年間の冠婚葬祭費',desc:'ご祝儀・香典・帰省等',items:[{label:'冠婚葬祭・帰省費',monthly:0,oneTime:20,interval:1,endAge:95}]},
+          {label:'子供の結婚援助',desc:'200〜300万円程度',items:[{label:'子供結婚援助',monthly:0,oneTime:200,interval:0,endAge:95}]},
+        ]},
+      ]},
+      {category:'👨‍👩‍👧 家族サポート',items:[
+        {name:'👴 親への仕送り・サポート',group:'👴 親サポート',patterns:[
+          {label:'月2〜3万円の仕送り',desc:'生活費補助',items:[{label:'親への仕送り',monthly:2.5,oneTime:0,interval:0,endAge:95}]},
+          {label:'親の介護費用',desc:'施設・訪問介護等',items:[{label:'親の介護費',monthly:5,oneTime:0,interval:0,endAge:95}]},
+          {label:'親の葬儀費用',desc:'100〜200万円',items:[{label:'親の葬儀',monthly:0,oneTime:150,interval:0,endAge:95}]},
+        ]},
+        {name:'💰 臨時収入・相続',group:'💰 臨時収入',patterns:[
+      {label:'相続・贈与',desc:'親などからの相続・贈与',items:[{label:'相続・贈与',monthly:0,oneTime:500,interval:0,endAge:95,isIncome:true}]},
+      {label:'退職金',desc:'退職時の一時金',items:[{label:'退職金',monthly:0,oneTime:1000,interval:0,endAge:95,isIncome:true}]},
+      {label:'不動産売却',desc:'家・土地の売却益',items:[{label:'不動産売却益',monthly:0,oneTime:2000,interval:0,endAge:95,isIncome:true}]},
+      {label:'副業・投資収入',desc:'月次の副収入',items:[{label:'副業・投資収入',monthly:5,oneTime:0,interval:0,endAge:95,isIncome:true}]},
+    ]},
+    {name:'🎓 子供の独立支援',group:'🎓 独立支援',patterns:[
+          {label:'引越し・家具等援助',desc:'50〜100万円程度',items:[{label:'独立支援金',monthly:0,oneTime:80,interval:0,endAge:95}]},
+          {label:'住宅購入支援',desc:'100〜300万円の援助',items:[{label:'住宅購入援助',monthly:0,oneTime:200,interval:0,endAge:95}]},
+        ]},
+      ]},
+      {category:'🎯 趣味・ライフスタイル',items:[
+        {name:'🏋️ 趣味・習い事',group:'🏋️ 趣味',patterns:[
+          {label:'スポーツジム',desc:'月5,000〜1万円',items:[{label:'ジム会費',monthly:0.8,oneTime:0,interval:0,endAge:95}]},
+          {label:'ゴルフ',desc:'月2〜5万円（道具・ラウンド）',items:[{label:'ゴルフ費用',monthly:3,oneTime:30,interval:0,endAge:95}]},
+          {label:'楽器・音楽',desc:'月1〜3万円（レッスン等）',items:[{label:'音楽レッスン',monthly:2,oneTime:20,interval:0,endAge:95}]},
+          {label:'釣り・アウトドア',desc:'月1〜3万円',items:[{label:'アウトドア費用',monthly:2,oneTime:10,interval:0,endAge:95}]},
+        ]},
+        {name:'✈️ 定年後の旅行増加',group:'✈️ 旅行（退職後）',patterns:[
+          {label:'年2回の国内旅行',desc:'定年後に旅行を増やす',items:[{label:'国内旅行（年2回）',monthly:0,oneTime:30,interval:1,endAge:95}]},
+          {label:'年1回の海外旅行',desc:'定年後のご褒美',items:[{label:'海外旅行（年1回）',monthly:0,oneTime:50,interval:1,endAge:95}]},
+          {label:'クルーズ旅行',desc:'数年に一度・高級旅行',items:[{label:'クルーズ旅行',monthly:0,oneTime:80,interval:3,endAge:95}]},
+        ]},
+      ]},
+      {category:'🏠 住まい関連',items:[
+        {name:'🏡 老後の住み替え・リフォーム',group:'🏡 老後リフォーム',patterns:[
+          {label:'バリアフリーリフォーム',desc:'手すり・段差解消等・50〜100万円',items:[{label:'バリアフリーリフォーム',monthly:0,oneTime:80,interval:0,endAge:95}]},
+          {label:'老人ホーム入居',desc:'入居一時金200〜500万円',items:[
+            {label:'老人ホーム入居一時金',monthly:0,oneTime:300,interval:0,endAge:95},
+            {label:'老人ホーム月額',monthly:15,oneTime:0,interval:0,endAge:95},
+          ]},
+        ]},
+        {name:'📦 引越し',group:'📦 引越し',patterns:[
+          {label:'国内引越し',desc:'30〜50万円程度',items:[{label:'引越し費用',monthly:0,oneTime:40,interval:0,endAge:95}]},
+          {label:'海外赴任・引越し',desc:'100〜300万円程度',items:[{label:'海外引越し費用',monthly:0,oneTime:200,interval:0,endAge:95}]},
+        ]},
+      ]},
+    ];
+
+    // 開始年齢入力
+    const ageRow=document.createElement('div');ageRow.style.cssText='display:flex;align-items:center;gap:8px;margin-bottom:14px;padding:8px 12px;background:#f8f8f8;border-radius:8px';
+    const ageLbl=document.createElement('label');ageLbl.style.cssText='font-size:12px;color:#666';ageLbl.textContent='デフォルト開始年齢:';
+    const ageInp=document.createElement('input');ageInp.type='number';ageInp.value=getSimVal('sim-age')||35;ageInp.style.cssText='width:60px;padding:4px 6px;border:1px solid #ddd;border-radius:6px;font-size:13px';
+    const ageSub=document.createElement('span');ageSub.style.cssText='font-size:11px;color:#aaa';ageSub.textContent='（追加後に変更可）';
+    ageRow.appendChild(ageLbl);ageRow.appendChild(ageInp);ageRow.appendChild(ageSub);box.appendChild(ageRow);
+
+    subPresets.forEach(function(cat){
+      const catTitle=document.createElement('div');catTitle.style.cssText='font-size:13px;font-weight:700;color:#374151;margin:12px 0 6px;padding-bottom:4px;border-bottom:1px solid #e5e7eb';catTitle.textContent=cat.category;box.appendChild(catTitle);
+      cat.items.forEach(function(preset){
+        const row=document.createElement('div');row.style.cssText='display:flex;align-items:center;gap:8px;margin-bottom:6px';
+        const btn=document.createElement('button');btn.textContent='＋ '+preset.name;
+        btn.style.cssText='padding:6px 12px;font-size:12px;background:#f3f4f6;color:#374151;border:1.5px solid #d1d5db;border-radius:8px;cursor:pointer;text-align:left;flex:1';
+        btn.onmouseover=function(){btn.style.background='#e0e7ff';btn.style.borderColor='#6366f1';btn.style.color='#3730a3';};
+        btn.onmouseout=function(){btn.style.background='#f3f4f6';btn.style.borderColor='#d1d5db';btn.style.color='#374151';};
+        btn.addEventListener('click',function(){
+          const defaultAge=parseFloat(ageInp.value)||35;
+          // 特殊な年齢入力が必要なプリセット
+          if(preset.group==='👴 親サポート'){
+            modal.remove();
+            showAgeContextModal(preset,defaultAge,{
+              label:'親の現在の年齢',default:65,
+              getEndAge:function(myAge,contextAge){return myAge+(100-contextAge);},
+              getBadge:function(myAge,contextAge){return '親 現在'+contextAge+'歳';},
+            });
+            return;
+          }
+          if(preset.group==='🐾 ペット'){
+            modal.remove();
+            showAgeContextModal(preset,defaultAge,{
+              label:'ペットの現在の年齢（0=これから飼う）',default:0,
+              getEndAge:function(myAge,petAge){return myAge+(15-petAge);},
+              getBadge:function(myAge,petAge){return 'ペット 現在'+petAge+'歳 ('+Math.max(0,15-petAge)+'年後まで)';},
+            });
+            return;
+          }
+          if(preset.patterns.length===1){
+            preset.patterns[0].items.forEach(function(item){
+              addEvent({label:item.label,group:preset.group,patternName:preset.patterns[0].label,startAge:defaultAge,endAge:item.endAge||95,monthly:item.monthly,oneTime:item.oneTime,interval:item.interval});
+            });
+            renderEvents();runSim();
+            btn.textContent='✓ '+preset.name+' 追加済';btn.style.background='#d1fae5';btn.style.color='#065f46';btn.style.borderColor='#6ee7b7';
+            btn.disabled=true;
+          } else {
+            modal.remove();
+            showPatternModalWithAge(preset,defaultAge);
+          }
+        });
+        row.appendChild(btn);box.appendChild(row);
+      });
+    });
+
+    const closeBtn=document.createElement('button');closeBtn.textContent='閉じる';closeBtn.style.cssText='width:100%;padding:9px;margin-top:10px;background:#f0f0f0;color:#666;border:none;border-radius:8px;cursor:pointer;font-size:13px';
+    closeBtn.addEventListener('click',function(){modal.remove();});
+    box.appendChild(closeBtn);
+    modal.appendChild(box);modal.addEventListener('click',function(e){if(e.target===modal)modal.remove();});
+    document.body.appendChild(modal);
+  }
+
+  function showAgeContextModal(preset,myDefaultAge,ctx){
+    let modal=document.getElementById('sim-pattern-modal');if(modal)modal.remove();
+    modal=document.createElement('div');modal.id='sim-pattern-modal';
+    modal.style.cssText='position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center';
+    const box=document.createElement('div');box.style.cssText='background:#fff;border-radius:14px;padding:20px;width:min(480px,95vw);max-height:80vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2)';
+    const title=document.createElement('div');title.style.cssText='font-size:16px;font-weight:700;margin-bottom:4px';title.textContent=preset.name+' の設定';
+    const sub=document.createElement('div');sub.style.cssText='font-size:12px;color:#888;margin-bottom:14px';sub.textContent='年齢を入力すると終了時期が自動計算されます';
+    box.appendChild(title);box.appendChild(sub);
+
+    function mkF(label,val){
+      const wrap=document.createElement('div');wrap.style.cssText='margin-bottom:10px';
+      const lbl=document.createElement('label');lbl.style.cssText='font-size:12px;color:#666;display:block;margin-bottom:3px';lbl.textContent=label;
+      const inp=document.createElement('input');inp.type='number';inp.value=val;inp.style.cssText='width:100%;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:14px';
+      wrap.appendChild(lbl);wrap.appendChild(inp);return{wrap,inp};
+    }
+    const myAgeF=mkF('現在の自分の年齢',myDefaultAge);
+    const ctxAgeF=mkF(ctx.label,ctx.default);
+    box.appendChild(myAgeF.wrap);box.appendChild(ctxAgeF.wrap);
+
+    const preview=document.createElement('div');preview.style.cssText='background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:#0369a1;min-height:36px';
+    function updatePreview(){
+      const ma=parseFloat(myAgeF.inp.value)||myDefaultAge;
+      const ca=parseFloat(ctxAgeF.inp.value)||ctx.default;
+      const endAge=ctx.getEndAge(ma,ca);
+      const badge=ctx.getBadge(ma,ca);
+      preview.innerHTML='<b>'+badge+'</b>　→　終了予定: 自分が<b>'+Math.round(endAge)+'歳</b>頃';
+    }
+    myAgeF.inp.addEventListener('input',updatePreview);
+    ctxAgeF.inp.addEventListener('input',updatePreview);
+    updatePreview();
+    box.appendChild(preview);
+
+    preset.patterns.forEach(function(pat){
+      const card=document.createElement('div');card.style.cssText='border:1.5px solid #e0e7ff;border-radius:10px;padding:12px 14px;margin-bottom:8px;cursor:pointer';
+      card.onmouseover=function(){card.style.borderColor='#6366f1';card.style.background='#f5f3ff';};
+      card.onmouseout=function(){card.style.borderColor='#e0e7ff';card.style.background='#fff';};
+      const pt=document.createElement('div');pt.style.cssText='font-size:13px;font-weight:700;color:#3730a3;margin-bottom:2px';pt.textContent=pat.label;
+      const pd=document.createElement('div');pd.style.cssText='font-size:11px;color:#888;margin-bottom:4px';pd.textContent=pat.desc;
+      const pi=document.createElement('div');pi.style.cssText='font-size:11px;color:#555';
+      pat.items.forEach(function(item){
+        const l=document.createElement('div');const parts=[];
+        if(item.monthly>0)parts.push('月'+item.monthly+'万円');
+        if(item.oneTime>0)parts.push('一時金'+item.oneTime+'万円'+(item.interval>0?'・'+item.interval+'年ごと':''));
+        l.textContent='・'+item.label+(parts.length?' ('+parts.join('/')+')'  :'');pi.appendChild(l);
+      });
+      card.appendChild(pt);card.appendChild(pd);card.appendChild(pi);
+      card.addEventListener('click',function(){
+        const ma=parseFloat(myAgeF.inp.value)||myDefaultAge;
+        const ca=parseFloat(ctxAgeF.inp.value)||ctx.default;
+        const endAge=Math.min(Math.round(ctx.getEndAge(ma,ca)),95);
+        const badge=ctx.getBadge(ma,ca);
+        pat.items.forEach(function(item){
+          addEvent({label:item.label,group:preset.group,patternName:pat.label+' ('+badge+')',startAge:ma,endAge:endAge,monthly:item.monthly,oneTime:item.oneTime,interval:item.interval});
+        });
+        renderEvents();runSim();modal.remove();
+      });
+      box.appendChild(card);
+    });
+    const closeBtn=document.createElement('button');closeBtn.textContent='キャンセル';closeBtn.style.cssText='width:100%;padding:8px;margin-top:4px;background:#f0f0f0;color:#666;border:none;border-radius:8px;cursor:pointer;font-size:13px';
+    closeBtn.addEventListener('click',function(){modal.remove();});
+    box.appendChild(closeBtn);
+    modal.appendChild(box);modal.addEventListener('click',function(e){if(e.target===modal)modal.remove();});
+    document.body.appendChild(modal);
+  }
+
+  function showPatternModalWithAge(preset,defaultAge){
+    let modal=document.getElementById('sim-pattern-modal');if(modal)modal.remove();
+    modal=document.createElement('div');modal.id='sim-pattern-modal';
+    modal.style.cssText='position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center';
+    const box=document.createElement('div');box.style.cssText='background:#fff;border-radius:14px;padding:20px;width:min(480px,95vw);max-height:80vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2)';
+    const title=document.createElement('div');title.style.cssText='font-size:16px;font-weight:700;margin-bottom:4px';title.textContent=preset.name+' のパターンを選択';
+    const sub=document.createElement('div');sub.style.cssText='font-size:12px;color:#888;margin-bottom:14px';sub.textContent='追加後に各値を調整できます';
+    box.appendChild(title);box.appendChild(sub);
+    const ageRow=document.createElement('div');ageRow.style.cssText='display:flex;align-items:center;gap:8px;margin-bottom:12px;padding:8px 10px;background:#f8f8f8;border-radius:8px';
+    const ageLbl=document.createElement('label');ageLbl.style.cssText='font-size:12px;color:#666';ageLbl.textContent='開始年齢:';
+    const ageInp=document.createElement('input');ageInp.type='number';ageInp.value=defaultAge;ageInp.style.cssText='width:60px;padding:4px 6px;border:1px solid #ddd;border-radius:6px;font-size:13px';
+    ageRow.appendChild(ageLbl);ageRow.appendChild(ageInp);box.appendChild(ageRow);
+    preset.patterns.forEach(function(pat){
+      const card=document.createElement('div');card.style.cssText='border:1.5px solid #e0e7ff;border-radius:10px;padding:12px 14px;margin-bottom:8px;cursor:pointer';
+      card.onmouseover=function(){card.style.borderColor='#6366f1';card.style.background='#f5f3ff';};
+      card.onmouseout=function(){card.style.borderColor='#e0e7ff';card.style.background='#fff';};
+      const pt=document.createElement('div');pt.style.cssText='font-size:13px;font-weight:700;color:#3730a3;margin-bottom:2px';pt.textContent=pat.label;
+      const pd=document.createElement('div');pd.style.cssText='font-size:11px;color:#888;margin-bottom:4px';pd.textContent=pat.desc;
+      const pi=document.createElement('div');pi.style.cssText='font-size:11px;color:#555';
+      pat.items.forEach(function(item){
+        const l=document.createElement('div');const parts=[];
+        if(item.monthly>0)parts.push('月'+item.monthly+'万円');
+        if(item.oneTime>0)parts.push('一時金'+item.oneTime+'万円'+(item.interval>0?'・'+item.interval+'年ごと':''));
+        l.textContent='・'+item.label+(parts.length?' ('+parts.join('/')+')'  :'');pi.appendChild(l);
+      });
+      card.appendChild(pt);card.appendChild(pd);card.appendChild(pi);
+      card.addEventListener('click',function(){
+        const startAge=parseFloat(ageInp.value)||35;
+        pat.items.forEach(function(item){addEvent({label:item.label,group:preset.group,patternName:pat.label,startAge:startAge,endAge:item.endAge||95,monthly:item.monthly,oneTime:item.oneTime,interval:item.interval});});
+        renderEvents();runSim();modal.remove();
+      });
+      box.appendChild(card);
+    });
+    const closeBtn=document.createElement('button');closeBtn.textContent='キャンセル';closeBtn.style.cssText='width:100%;padding:8px;margin-top:4px;background:#f0f0f0;color:#666;border:none;border-radius:8px;cursor:pointer;font-size:13px';
+    closeBtn.addEventListener('click',function(){modal.remove();});
+    box.appendChild(closeBtn);
+    modal.appendChild(box);modal.addEventListener('click',function(e){if(e.target===modal)modal.remove();});
+    document.body.appendChild(modal);
+  }
+
+  function showChildModal(){
+    let modal=document.getElementById('sim-pattern-modal');if(modal)modal.remove();
+    modal=document.createElement('div');modal.id='sim-pattern-modal';
+    modal.style.cssText='position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center';
+    const box=document.createElement('div');box.style.cssText='background:#fff;border-radius:14px;padding:20px;width:min(500px,95vw);max-height:85vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,0.2)';
+    const title=document.createElement('div');title.style.cssText='font-size:16px;font-weight:700;margin-bottom:4px';title.textContent='👶 子供の教育費設定';
+    const sub=document.createElement('div');sub.style.cssText='font-size:12px;color:#888;margin-bottom:14px';sub.textContent='自分の年齢と子供の年齢から入学金・学費を自動計算します';
+    box.appendChild(title);box.appendChild(sub);
+
+    function mkField(label,val,min,max,step){
+      const wrap=document.createElement('div');wrap.style.cssText='margin-bottom:10px';
+      const lbl=document.createElement('label');lbl.style.cssText='font-size:12px;color:#666;display:block;margin-bottom:3px';lbl.textContent=label;
+      const inp=document.createElement('input');inp.type='number';inp.value=val;inp.min=min;inp.max=max;inp.step=step||1;
+      inp.style.cssText='width:100%;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:14px';
+      wrap.appendChild(lbl);wrap.appendChild(inp);return {wrap,inp};
+    }
+    const myAge=mkField('現在の自分の年齢',getSimVal('sim-age')||35,20,60);
+    const birthAge=mkField('子供が生まれたときの自分の年齢（予定含む）',(getSimVal('sim-age')||35),20,55);
+    box.appendChild(myAge.wrap);box.appendChild(birthAge.wrap);
+    // 子供の現在の年齢を自動計算
+    function getChildCurrentAge(){return Math.max(0,Math.round((parseFloat(myAge.inp.value)||35)-(parseFloat(birthAge.inp.value)||35)));}
+
+    // コース選択
+    const courseTitle=document.createElement('div');courseTitle.style.cssText='font-size:13px;font-weight:700;color:#1e40af;margin:14px 0 8px';courseTitle.textContent='教育コースを選択';
+    box.appendChild(courseTitle);
+
+    const courses=[
+      {label:'🏫 公立コース',desc:'小中高すべて公立・大学は国立/私立',
+       costs:{month:2,elemIn:0,elemM:0,midIn:0,midM:0,highIn:0,highM:0,uniIn:100,uniM:5,uniY:4,elemPrivate:false,midPrivate:false,highPrivate:false}},
+      {label:'🏫 中学から私立',desc:'小学は公立・中高私立・大学私立',
+       costs:{month:4,elemIn:0,elemM:1,midIn:80,midM:5,highIn:40,highM:6,uniIn:150,uniM:8,uniY:4,elemPrivate:false,midPrivate:true,highPrivate:true}},
+      {label:'🏫 小学から私立',desc:'小中高大すべて私立',
+       costs:{month:6,elemIn:100,elemM:7,midIn:120,midM:8,highIn:60,highM:8,uniIn:200,uniM:10,uniY:4,elemPrivate:true,midPrivate:true,highPrivate:true}},
+    ];
+
+    let selectedCourse=courses[0];
+    const courseCards=[];
+    courses.forEach(function(c,ci){
+      const card=document.createElement('div');card.style.cssText='border:2px solid '+(ci===0?'#6366f1':'#e0e7ff')+';border-radius:10px;padding:10px 14px;margin-bottom:8px;cursor:pointer;background:'+(ci===0?'#f5f3ff':'#fff');
+      const ct=document.createElement('div');ct.style.cssText='font-size:13px;font-weight:700;color:#3730a3';ct.textContent=c.label;
+      const cd=document.createElement('div');cd.style.cssText='font-size:11px;color:#888;margin-top:2px';cd.textContent=c.desc;
+      card.appendChild(ct);card.appendChild(cd);
+      card.addEventListener('click',function(){
+        selectedCourse=c;
+        courseCards.forEach(function(cc,i){cc.style.borderColor=i===ci?'#6366f1':'#e0e7ff';cc.style.background=i===ci?'#f5f3ff':'#fff';});
+      });
+      courseCards.push(card);box.appendChild(card);
+    });
+
+    // プレビュー
+    const preview=document.createElement('div');preview.style.cssText='background:#f8faff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 12px;margin:12px 0;font-size:11px;color:#1e40af';
+    function updatePreview(){
+      const ma=parseFloat(myAge.inp.value)||35;
+      const ba=parseFloat(birthAge.inp.value)||35;
+      const ca=Math.max(0,Math.round(ma-ba)); // 子供の現在年齢
+      const c=selectedCourse.costs;
+      // プレビューに子供の現在年齢も表示
+      const lines=['<span style="color:#6366f1;font-weight:600">子供の現在年齢: 約'+ca+'歳</span>'];
+      // 小学入学: 子供6歳
+      const elemStart=ma+(6-ca);
+      if(elemStart>ma) lines.push('小学入学: '+elemStart+'歳'+(c.elemIn?' (入学金'+c.elemIn+'万円)':'')+(c.elemM?' 学費'+c.elemM+'万円/月×6年':''));
+      // 中学入学: 子供12歳
+      const midStart=ma+(12-ca);
+      if(midStart>ma) lines.push('中学入学: '+midStart+'歳'+(c.midIn?' (入学金'+c.midIn+'万円)':'')+(c.midM?' 学費'+c.midM+'万円/月×3年':''));
+      // 高校入学: 子供15歳
+      const highStart=ma+(15-ca);
+      if(highStart>ma) lines.push('高校入学: '+highStart+'歳'+(c.highIn?' (入学金'+c.highIn+'万円)':'')+(c.highM?' 学費'+c.highM+'万円/月×3年':''));
+      // 大学入学: 子供18歳
+      const uniStart=ma+(18-ca);
+      if(uniStart>ma) lines.push('大学入学: '+uniStart+'歳 (入学金'+c.uniIn+'万円) 学費'+c.uniM+'万円/月×'+c.uniY+'年');
+      preview.innerHTML='<b>📅 イベントスケジュール:</b><br>'+lines.join('<br>');
+    }
+    myAge.inp.addEventListener('input',updatePreview);
+    birthAge.inp.addEventListener('input',updatePreview);
+    courseCards.forEach(function(card){card.addEventListener('click',updatePreview);});
+    box.appendChild(preview);
+    updatePreview();
+
+    // 追加ボタン
+    const addBtn=document.createElement('button');addBtn.textContent='✓ この設定で追加';addBtn.style.cssText='width:100%;padding:10px;background:#6366f1;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600;margin-bottom:6px';
+    addBtn.addEventListener('click',function(){
+      const ma=parseFloat(myAge.inp.value)||35;
+      const ba=parseFloat(birthAge.inp.value)||35;
+      const ca=Math.max(0,Math.round(ma-ba));
+      const c=selectedCourse.costs;
+      // 既存の子供グループ数を確認して連番付与
+      const existingChildGroups=simEvents.filter(e=>e.group&&e.group.startsWith('👶 子供'));
+      const childNums=new Set(existingChildGroups.map(e=>e.group));
+      let childNum=1;
+      while(childNums.has('👶 子供'+childNum)) childNum++;
+      const grp=childNum===1&&childNums.size===0?'👶 子供1':'👶 子供'+childNum;
+      // 既存の「👶 子供」（番号なし）を「👶 子供1」にリネーム
+      simEvents.forEach(function(e){if(e.group==='👶 子供')e.group='👶 子供1';});
+      const patLbl=selectedCourse.label+' ('+ba+'歳で出産)';
+      // 習い事・雑費（子供0〜22歳相当）
+      const childEnd=ma+(22-ca);
+      addEvent({label:'習い事・雑費',group:grp,patternName:patLbl,startAge:ma,endAge:Math.min(childEnd,95),monthly:c.month,oneTime:0,interval:0});
+      // 小学校
+      const es=Math.round(ma+(6-ca));const ee=Math.round(ma+(12-ca));
+      if(es>ma-1&&es<95){
+        if(c.elemIn>0) addEvent({label:'小学入学金',group:grp,patternName:patLbl,startAge:es,endAge:es,monthly:0,oneTime:c.elemIn,interval:0});
+        if(c.elemM>0) addEvent({label:'小学学費',group:grp,patternName:patLbl,startAge:es,endAge:Math.min(ee-1,95),monthly:c.elemM,oneTime:0,interval:0});
+      }
+      // 中学校
+      const ms=Math.round(ma+(12-ca));const me=Math.round(ma+(15-ca));
+      if(ms>ma-1&&ms<95){
+        if(c.midIn>0) addEvent({label:'中学入学金',group:grp,patternName:patLbl,startAge:ms,endAge:ms,monthly:0,oneTime:c.midIn,interval:0});
+        if(c.midM>0) addEvent({label:'中学学費',group:grp,patternName:patLbl,startAge:ms,endAge:Math.min(me-1,95),monthly:c.midM,oneTime:0,interval:0});
+      }
+      // 高校
+      const hs=Math.round(ma+(15-ca));const he=Math.round(ma+(18-ca));
+      if(hs>ma-1&&hs<95){
+        if(c.highIn>0) addEvent({label:'高校入学金',group:grp,patternName:patLbl,startAge:hs,endAge:hs,monthly:0,oneTime:c.highIn,interval:0});
+        if(c.highM>0) addEvent({label:'高校学費',group:grp,patternName:patLbl,startAge:hs,endAge:Math.min(he-1,95),monthly:c.highM,oneTime:0,interval:0});
+      }
+      // 大学
+      const us=Math.round(ma+(18-ca));const ue=Math.round(ma+(18+c.uniY-ca));
+      if(us>ma-1&&us<95){
+        addEvent({label:'大学入学金',group:grp,patternName:patLbl,startAge:us,endAge:us,monthly:0,oneTime:c.uniIn,interval:0});
+        addEvent({label:'大学学費',group:grp,patternName:patLbl,startAge:us,endAge:Math.min(ue-1,95),monthly:c.uniM,oneTime:0,interval:0});
+      }
+      renderEvents();runSim();modal.remove();
+    });
+    const closeBtn=document.createElement('button');closeBtn.textContent='キャンセル';closeBtn.style.cssText='width:100%;padding:8px;background:#f0f0f0;color:#666;border:none;border-radius:8px;cursor:pointer;font-size:13px';
+    closeBtn.addEventListener('click',function(){modal.remove();});
+    box.appendChild(addBtn);box.appendChild(closeBtn);
+    modal.appendChild(box);modal.addEventListener('click',function(e){if(e.target===modal)modal.remove();});
+    document.body.appendChild(modal);
+  }
+
+  presets.forEach(function(preset){
+    const btn=document.createElement('button');btn.textContent=preset.name;
+    btn.className='sim-btn';btn.style.cssText='padding:5px 12px;font-size:12px;background:#6366f1';
+    btn.addEventListener('click',function(){
+      if(preset.special==='child') showChildModal();
+      else showPatternModal(preset);
+    });
+    presetBar.appendChild(btn);
+  });
+  const customBtn=document.createElement('button');customBtn.textContent='＋ 支出を追加';
+  customBtn.className='sim-btn';customBtn.style.cssText='padding:5px 12px;font-size:12px;background:#059669';
+  customBtn.addEventListener('click',function(){addEvent({label:'新しい支出',group:'カスタム',startAge:getSimVal('sim-age')||35,endAge:95,monthly:0,oneTime:0,interval:0,isIncome:false});renderEvents();runSim();});
+  presetBar.appendChild(customBtn);
+
+  const customIncBtn=document.createElement('button');customIncBtn.textContent='＋ 収入を追加';
+  customIncBtn.className='sim-btn';customIncBtn.style.cssText='padding:5px 12px;font-size:12px;background:#0369a1';
+  customIncBtn.addEventListener('click',function(){addEvent({label:'新しい収入',group:'💰 臨時収入',startAge:getSimVal('sim-age')||35,endAge:getSimVal('sim-age')||35,monthly:0,oneTime:0,interval:0,isIncome:true});renderEvents();runSim();});
+  presetBar.appendChild(customIncBtn);
+
+  const subBtn=document.createElement('button');subBtn.textContent='📋 その他のイベント';
+  subBtn.className='sim-btn';subBtn.style.cssText='padding:5px 12px;font-size:12px;background:#6b7280';
+  subBtn.addEventListener('click',function(){showSubOptionModal();});
+  presetBar.appendChild(subBtn);
+  wrap.appendChild(presetBar);
+
+  const evList=document.createElement('div');evList.id='sim-ev-list';evList.style.cssText='display:flex;flex-direction:column;gap:8px;margin-bottom:12px';
+  wrap.appendChild(evList);
+
+  const resultArea=document.createElement('div');resultArea.id='sim-result';
+  wrap.appendChild(resultArea);
+  container.appendChild(wrap);
+  renderEvents();
+  runSim();
+}
+
+// ライフイベント関連
+
+function addEvent(data){
+  simEvents.push(Object.assign({id:simEventId++,isIncome:false},data));
+}
+
+function renderEvents(){
+  const list=document.getElementById('sim-ev-list');if(!list)return;
+  list.innerHTML='';
+  if(!simEvents.length){
+    const empty=document.createElement('div');empty.style.cssText='font-size:12px;color:#aaa;padding:8px 0';empty.textContent='イベントなし（上のボタンで追加）';list.appendChild(empty);return;
+  }
+
+  function mkNumInp(val,label,onchange,width){
+    const wrap=document.createElement('label');wrap.style.cssText='display:flex;align-items:center;gap:3px;font-size:11px;color:#666';
+    wrap.textContent=label;
+    const inp=document.createElement('input');inp.type='number';inp.value=val;inp.style.cssText='width:'+(width||44)+'px;padding:3px 5px;border:1px solid #ddd;border-radius:5px;font-size:12px';
+    inp.addEventListener('input',function(){onchange(parseFloat(inp.value)||0);runSim();});
+    wrap.appendChild(inp);return wrap;
+  }
+
+  // グループ単位でまとめる
+  const groups={};
+  simEvents.forEach(function(ev){
+    const g=ev.group||'その他';
+    if(!groups[g])groups[g]=[];
+    groups[g].push(ev);
+  });
+
+  Object.keys(groups).forEach(function(groupName){
+    const groupEvs=groups[groupName];
+    const groupEnabled=groupEvs.some(e=>e.enabled!==false);
+
+    // グループヘッダー
+    const ghdr=document.createElement('div');
+    ghdr.style.cssText='background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:10px;margin-bottom:4px;overflow:hidden';
+
+    const ghdrTop=document.createElement('div');
+    ghdrTop.style.cssText='display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer';
+
+    const gToggleAll=document.createElement('input');gToggleAll.type='checkbox';gToggleAll.checked=groupEnabled;gToggleAll.style.cssText='width:16px;height:16px;cursor:pointer';
+    gToggleAll.title='グループ全体をON/OFF';
+    gToggleAll.addEventListener('change',function(){
+      groupEvs.forEach(function(ev){ev.enabled=gToggleAll.checked;});
+      renderEvents();runSim();
+    });
+
+    const gName=document.createElement('span');gName.style.cssText='font-size:13px;font-weight:700;color:#1e40af;flex:1';gName.textContent=groupName;
+    // パターン名（グループ内の最初のイベントから取得）
+    const patName=groupEvs[0]&&groupEvs[0].patternName?groupEvs[0].patternName:null;
+    if(patName){const patBadge=document.createElement('span');patBadge.style.cssText='font-size:10px;background:#e0e7ff;color:#3730a3;border-radius:4px;padding:2px 6px;margin-left:4px';patBadge.textContent=patName;gName.appendChild(patBadge);}
+    const gCount=document.createElement('span');gCount.style.cssText='font-size:11px;color:#888';gCount.textContent=groupEvs.length+'項目';
+
+    const expandBtn=document.createElement('span');expandBtn.style.cssText='font-size:12px;color:#888;transform:rotate(0deg);transition:transform .2s';expandBtn.textContent='▼';
+
+    ghdrTop.appendChild(gToggleAll);ghdrTop.appendChild(gName);ghdrTop.appendChild(gCount);ghdrTop.appendChild(expandBtn);
+    ghdr.appendChild(ghdrTop);
+
+    // グループ内の項目リスト
+    const gBody=document.createElement('div');gBody.style.cssText='padding:0 12px 8px';
+
+    groupEvs.forEach(function(ev){
+      const isInc=ev.isIncome===true;
+      const row=document.createElement('div');
+      row.style.cssText='background:#fff;border-radius:8px;padding:8px 10px;border:1.5px solid '+(isInc?'#bae6fd':'#e0e7ff')+';margin-bottom:6px;'+(ev.enabled===false?'opacity:0.45':'');
+
+      const r1=document.createElement('div');r1.style.cssText='display:flex;gap:6px;align-items:center;margin-bottom:5px';
+
+      const evCb=document.createElement('input');evCb.type='checkbox';evCb.checked=ev.enabled!==false;evCb.style.cssText='width:14px;height:14px;cursor:pointer';
+      evCb.addEventListener('change',function(){
+        ev.enabled=evCb.checked;
+        row.style.opacity=evCb.checked?'1':'0.45';
+        // グループチェックボックスも更新
+        gToggleAll.checked=groupEvs.some(e=>e.enabled!==false);
+        runSim();
+      });
+
+      const typeBadge=document.createElement('span');
+      typeBadge.style.cssText='font-size:10px;padding:2px 7px;border-radius:4px;font-weight:600;flex-shrink:0;'+(ev.isIncome?'background:#dbeafe;color:#0369a1':'background:#fee2e2;color:#991b1b');
+      typeBadge.textContent=ev.isIncome?'収入':'支出';
+      const nameInp=document.createElement('input');nameInp.type='text';nameInp.value=ev.label;nameInp.className='sim-input';nameInp.style.cssText='flex:1;font-size:12px;padding:4px 6px';
+      nameInp.addEventListener('input',function(){ev.label=nameInp.value;});
+
+      const delBtn=document.createElement('button');delBtn.textContent='✕';delBtn.style.cssText='padding:3px 7px;border:none;background:#fee2e2;color:#991b1b;border-radius:5px;cursor:pointer;font-size:11px';
+      delBtn.addEventListener('click',function(){simEvents=simEvents.filter(e=>e.id!==ev.id);renderEvents();runSim();});
+
+      r1.appendChild(evCb);r1.appendChild(typeBadge);r1.appendChild(nameInp);r1.appendChild(delBtn);row.appendChild(r1);
+
+      const r2=document.createElement('div');r2.style.cssText='display:flex;gap:6px;align-items:center;flex-wrap:wrap';
+      r2.appendChild(mkNumInp(ev.startAge,'開始年齢',function(v){ev.startAge=v;}));
+      r2.appendChild(mkNumInp(ev.endAge,'終了年齢',function(v){ev.endAge=v;}));
+      r2.appendChild(mkNumInp(ev.monthly,'月額(万円)',function(v){ev.monthly=v;},48));
+      r2.appendChild(mkNumInp(ev.oneTime,'一時金(万円)',function(v){ev.oneTime=v;},52));
+      r2.appendChild(mkNumInp(ev.interval,'頻度(年,0=一回)',function(v){ev.interval=v;},56));
+      row.appendChild(r2);
+      gBody.appendChild(row);
+    });
+
+    // グループ内カスタム追加ボタン
+    const gAddBtn=document.createElement('button');
+    gAddBtn.textContent='＋ '+groupName+'に追加';
+    gAddBtn.style.cssText='margin-top:4px;padding:4px 10px;font-size:11px;background:#e0e7ff;color:#3730a3;border:none;border-radius:6px;cursor:pointer;width:100%';
+    gAddBtn.addEventListener('click',function(){
+      addEvent({label:'新しい項目',group:groupName,startAge:getSimVal('sim-age')||35,endAge:95,monthly:0,oneTime:0,interval:0});
+      renderEvents();runSim();
+    });
+    gBody.appendChild(gAddBtn);
+
+    // グループ削除ボタン
+    const gDelBtn=document.createElement('button');
+    gDelBtn.textContent='🗑 '+groupName+'を削除';
+    gDelBtn.style.cssText='margin-top:4px;padding:4px 10px;font-size:11px;background:#fee2e2;color:#991b1b;border:none;border-radius:6px;cursor:pointer;width:100%';
+    gDelBtn.addEventListener('click',function(){
+      if(!confirm(groupName+'のイベントをすべて削除しますか？')) return;
+      simEvents=simEvents.filter(e=>(e.group||'その他')!==groupName);
+      renderEvents();runSim();
+    });
+    gBody.appendChild(gDelBtn);
+
+    // 展開/折りたたみ
+    let expanded=true;
+    ghdrTop.addEventListener('click',function(e){
+      if(e.target===gToggleAll) return;
+      expanded=!expanded;
+      gBody.style.display=expanded?'block':'none';
+      expandBtn.style.transform=expanded?'rotate(0deg)':'rotate(-90deg)';
+    });
+
+    ghdr.appendChild(gBody);
+    list.appendChild(ghdr);
+  });
+}
+
+
+function runSim(){
+  const age=Math.round(getSimVal('sim-age'));
+  const retireAge=Math.round(getSimVal('sim-retire'));
+  const cash=getSimVal('sim-cash')*10000;
+  const invest=getSimVal('sim-invest')*10000;
+  const monthly=getSimVal('sim-monthly')*10000;
+  const rate=getSimVal('sim-rate')/100;
+  const stopAge=Math.round(getSimVal('sim-stop-age'));
+  const drawdownAge=Math.round(getSimVal('sim-drawdown-age'));
+  const drawdownRate=getSimVal('sim-drawdown-rate')/100;
+  const cashGainMonthly=getSimVal('sim-cash-gain')*10000;
+  if(age<=0||retireAge<=age) return;
+  const result=document.getElementById('sim-result');if(!result)return;
+  // 表示間隔の値を再描画前に保存
+  const _savedStep=(document.getElementById('sim-table-step')||{value:'5'}).value||'5';
+  result.innerHTML='';
+  const maxAge=Math.max(retireAge,drawdownAge)+30;
+  const years=[];
+  let principal=invest,value=invest,totalContrib=invest;
+  let cashBalance=cash;
+  let cashBalanceNoEvent=cash;
+  for(let a=age;a<=maxAge;a++){
+    const isDrawdown=a>=drawdownAge;
+    let yearlyContrib=0,drawAmt=0;
+    if(!isDrawdown){
+      const monthlyRate=Math.pow(1+rate,1/12)-1;
+      const contrib=a<stopAge?monthly:0;
+      let v=value;
+      for(let m=0;m<12;m++){v=(v+contrib)*(1+monthlyRate);yearlyContrib+=contrib;}
+      value=v;totalContrib+=yearlyContrib;principal+=yearlyContrib;
+    } else {
+      drawAmt=value*drawdownRate;value=(value-drawAmt)*(1+rate);if(value<0)value=0;
+    }
+    // 現金残高計算: 月間増加額から積立分を引いた分が現金に積み上がる
+    // sim-cash-gainは既に積立を引いた後の純現金増加額
+    const monthlyCashGain=isDrawdown?0:cashGainMonthly;
+    cashBalance+=monthlyCashGain*12;
+    cashBalanceNoEvent+=monthlyCashGain*12;
+    // ライフイベントによる支出
+    let eventCost=0;
+    // イベント別コストを記録
+    const eventCostByEvId={};
+    simEvents.forEach(function(ev){
+      if(ev.enabled===false) return;
+      if(a<ev.startAge||a>ev.endAge) return;
+      let cost=0;
+      if(ev.monthly>0) cost+=ev.monthly*10000*12;
+      if(ev.oneTime>0){
+        if(ev.interval<=0){
+          if(a===Math.round(ev.startAge)) cost+=ev.oneTime*10000;
+        } else {
+          if((a-Math.round(ev.startAge))%Math.round(ev.interval)===0) cost+=ev.oneTime*10000;
+        }
+      }
+      if(cost>0){eventCostByEvId[ev.id]=cost;eventCost+=cost;}
+    });
+    cashBalance-=eventCost;
+    years.push({age:a,value:Math.round(value),principal:Math.round(principal),gain:Math.round(value-principal),drawAmt:Math.round(drawAmt),drawMonthly:Math.round(drawAmt/12),isRetire:a===retireAge,isDrawdown:isDrawdown&&a>=drawdownAge,cash:Math.round(cashBalance),cashNoEvent:Math.round(cashBalanceNoEvent),total:Math.round(value+cashBalance),eventCost:Math.round(eventCost),eventCostByEvId:Object.assign({},eventCostByEvId)});
+  }
+  const retireRow=years.find(y=>y.age===retireAge)||years[years.length-1];
+  const drawdownRow=years.find(y=>y.age===drawdownAge);
+  const cardTitle=document.createElement('div');cardTitle.className='sim-section-title';cardTitle.textContent='📈 シミュレーション結果';result.appendChild(cardTitle);
+  const cards=document.createElement('div');cards.className='sim-result-cards';
+  [{label:`${retireAge}歳時点の総資産`,val:fmtMan(retireRow.total||retireRow.value),sub:`投資 ${fmtMan(retireRow.value)} + 現金 ${fmtMan(retireRow.cash||0)}`,color:'#166534'},
+   {label:`${retireAge}歳時点の現金`,val:fmtMan(retireRow.cash||0),sub:`月${fmtMan(cashGainMonthly)}×${retireAge-age}年積み上げ`,color:'#0369a1'},
+   {label:`切り崩し年額 (${drawdownAge}歳～)`,val:drawdownRow?fmtMan(drawdownRow.drawAmt):'—',sub:drawdownRow?`月額 ${fmtMan(drawdownRow.drawMonthly)}`:'',color:'#d97706'}
+  ].forEach(function(c){
+    const card=document.createElement('div');card.className='sim-card';
+    const lbl=document.createElement('div');lbl.className='sim-card-label';lbl.textContent=c.label;
+    const val=document.createElement('div');val.className='sim-card-val';val.style.color=c.color;val.textContent=c.val;
+    const sub=document.createElement('div');sub.className='sim-card-sub';sub.textContent=c.sub;
+    card.appendChild(lbl);card.appendChild(val);card.appendChild(sub);cards.appendChild(card);
+  });
+  result.appendChild(cards);
+  const chartTitle=document.createElement('div');chartTitle.className='sim-section-title';chartTitle.textContent='📊 資産推移グラフ';result.appendChild(chartTitle);
+  const chartWrap=document.createElement('div');chartWrap.className='sim-chart-wrap';
+  const svgNS='http://www.w3.org/2000/svg';
+  const W=800,H=280,pL=80,pR=20,pT=20,pB=40,cW=W-pL-pR,cH=H-pT-pB;
+  const maxVal=Math.max(...years.map(y=>y.total||y.value),1);
+  const n=years.length,bW=Math.max(4,Math.min(20,cW/n*0.65)),gap=cW/n;
+  const svg=document.createElementNS(svgNS,'svg');
+  svg.setAttribute('viewBox','0 0 '+W+' '+H);svg.setAttribute('width',W);svg.setAttribute('height',H);
+  svg.style.cssText='display:block;min-width:'+W+'px';svg.style.pointerEvents='none';
+  [0,0.25,0.5,0.75,1].forEach(function(f){
+    const y=pT+cH*(1-f);
+    const line=document.createElementNS(svgNS,'line');line.setAttribute('x1',pL);line.setAttribute('y1',y);line.setAttribute('x2',W-pR);line.setAttribute('y2',y);line.setAttribute('stroke','#eee');line.setAttribute('stroke-width','1');svg.appendChild(line);
+    const t=document.createElementNS(svgNS,'text');t.setAttribute('x',pL-6);t.setAttribute('y',y+4);t.setAttribute('text-anchor','end');t.setAttribute('font-size','10');t.setAttribute('fill','#aaa');t.textContent=fmtM(maxVal*f);svg.appendChild(t);
+  });
+  years.forEach(function(y,i){
+    const x=pL+gap*i+gap/2;
+    const totalH=Math.max((y.value/maxVal)*cH,0);
+    const prinH=Math.max((Math.min(y.principal,y.value)/maxVal)*cH,0);
+    const gainH=totalH-prinH;
+    if(prinH>0){const r=document.createElementNS(svgNS,'rect');r.setAttribute('x',x-bW/2);r.setAttribute('y',pT+cH-prinH);r.setAttribute('width',bW);r.setAttribute('height',prinH);r.setAttribute('fill',y.isDrawdown?'#93c5fd':'#3b82f6');r.setAttribute('rx','1');svg.appendChild(r);}
+    if(gainH>0){const r=document.createElementNS(svgNS,'rect');r.setAttribute('x',x-bW/2);r.setAttribute('y',pT+cH-totalH);r.setAttribute('width',bW);r.setAttribute('height',gainH);r.setAttribute('fill',y.isDrawdown?'#6ee7b7':'#10b981');r.setAttribute('rx','1');svg.appendChild(r);}
+    // 現金バー（右隣に表示）
+    if(y.cash>0&&!y.isDrawdown){
+      const cashH=Math.max((y.cash/maxVal)*cH,0);
+      const rc=document.createElementNS(svgNS,'rect');
+      rc.setAttribute('x',x+bW/2+1);rc.setAttribute('y',pT+cH-cashH);
+      rc.setAttribute('width',bW*0.8);rc.setAttribute('height',cashH);
+      rc.setAttribute('fill','#f59e0b');rc.setAttribute('rx','1');svg.appendChild(rc);
+    }
+    // イベントなし現金（薄い比較バー）
+    if(simEvents.length>0&&y.cashNoEvent>0&&!y.isDrawdown){
+      const noEvH=Math.max((y.cashNoEvent/maxVal)*cH,0);
+      const rn=document.createElementNS(svgNS,'rect');
+      rn.setAttribute('x',x+bW/2+1);rn.setAttribute('y',pT+cH-noEvH);
+      rn.setAttribute('width',bW*0.8);rn.setAttribute('height',noEvH);
+      rn.setAttribute('fill','none');rn.setAttribute('stroke','#f59e0b');rn.setAttribute('stroke-width','1');rn.setAttribute('stroke-dasharray','3,2');rn.setAttribute('rx','1');svg.appendChild(rn);
+    }
+    if(y.isRetire||y.age===drawdownAge){const line=document.createElementNS(svgNS,'line');line.setAttribute('x1',x);line.setAttribute('y1',pT);line.setAttribute('x2',x);line.setAttribute('y2',pT+cH);line.setAttribute('stroke',y.isRetire?'#2563eb':'#d97706');line.setAttribute('stroke-width','1.5');line.setAttribute('stroke-dasharray','4,3');svg.appendChild(line);}
+    if(y.age%5===0){const t=document.createElementNS(svgNS,'text');t.setAttribute('x',x);t.setAttribute('y',pT+cH+16);t.setAttribute('text-anchor','middle');t.setAttribute('font-size','10');t.setAttribute('fill','#888');t.textContent=y.age;svg.appendChild(t);}
+  });
+  chartWrap.appendChild(svg);result.appendChild(chartWrap);
+  const leg=document.createElement('div');leg.className='legend';leg.style.marginBottom='16px';
+  const legendItems=[{c:'#3b82f6',l:'元本（積立）'},{c:'#10b981',l:'運用益'},{c:'#f59e0b',l:'現金'}];
+  if(simEvents.length>0) legendItems.push({c:'#f59e0b',l:'現金（イベントなし）',dashed:true});
+  legendItems.push({c:'#93c5fd',l:'元本（切崩後）'},{c:'#6ee7b7',l:'運用益（切崩後）'});
+  legendItems.forEach(function(item){
+    const sp=document.createElement('span');sp.className='leg-item';const sw=document.createElement('span');sw.className='leg-swatch';sw.style.background=item.c;sp.appendChild(sw);sp.appendChild(document.createTextNode(item.l));leg.appendChild(sp);
+  });
+  result.appendChild(leg);
+  const tblTitleRow=document.createElement('div');tblTitleRow.style.cssText='display:flex;align-items:center;justify-content:space-between;margin-bottom:0';
+  const tblTitle=document.createElement('div');tblTitle.className='sim-section-title';tblTitle.textContent='📋 年齢別詳細';tblTitle.style.marginBottom='0';
+  const stepWrap=document.createElement('label');stepWrap.style.cssText='font-size:12px;color:#666;display:flex;align-items:center;gap:6px';
+  stepWrap.textContent='表示間隔: ';
+  const stepSel=document.createElement('select');stepSel.id='sim-table-step';stepSel.className='trend-sel';
+  [['1','1年ごと'],['2','2年ごと'],['5','5年ごと（デフォルト）'],['10','10年ごと']].forEach(function(o){
+    const opt=document.createElement('option');opt.value=o[0];opt.textContent=o[1];if(o[0]===_savedStep)opt.selected=true;stepSel.appendChild(opt);
+  });
+  stepSel.addEventListener('change',runSim);
+  stepWrap.appendChild(stepSel);
+  tblTitleRow.appendChild(tblTitle);tblTitleRow.appendChild(stepWrap);
+  result.appendChild(tblTitleRow);
+  const tblWrap=document.createElement('div');tblWrap.className='sim-table-wrap';
+  const tbl=document.createElement('table');tbl.className='sim-table';
+  const thead=document.createElement('thead');const htr=document.createElement('tr');
+  const activeEvents=simEvents.filter(e=>e.enabled!==false);
+
+  // patternNameから年齢情報を抽出してサブ年齢マップを作成
+  // 例: "公立コース (32歳で出産)" → {type:'child', birthAge:32}
+  // 例: "月2〜3万円の仕送り (親 現在65歳)" → {type:'parent', currentAge:65}
+  // 例: "犬（小型） (ペット 現在3歳...)" → {type:'pet', currentAge:3}
+  const contextAges=[];
+  const seenGroups=new Set();
+  activeEvents.forEach(function(ev){
+    if(!ev.patternName||seenGroups.has(ev.group)) return;
+    seenGroups.add(ev.group);
+    const pm=ev.patternName;
+    // patternNameから年齢を抽出（形式例: "公立コース (32歳で出産)", "月2〜3万円 (親 現在65歳)"）
+    if(pm.indexOf('歳で出産')>=0){
+      const n=parseInt(pm.replace(/.*\((\d+)歳で出産\).*/,'$1'));
+      // グループ名から子番号を取得（例: "👶 子供2" → "子2"）
+      const childNumMatch=ev.group.match(/子供(\d+)/);
+      const childLabel=childNumMatch?'子'+childNumMatch[1]:'子';
+      if(!isNaN(n)) contextAges.push({label:childLabel,type:'child',birthAge:n,group:ev.group});
+    } else if(pm.indexOf('親 現在')>=0){
+      const n=parseInt(pm.replace(/.*親 現在(\d+)歳.*/,'$1'));
+      if(!isNaN(n)) contextAges.push({label:'親',type:'parent',currentAge:n,startAge:age,group:ev.group});
+    } else if(pm.indexOf('ペット 現在')>=0){
+      const n=parseInt(pm.replace(/.*ペット 現在(\d+)歳.*/,'$1'));
+      if(!isNaN(n)) contextAges.push({label:'ペット',type:'pet',currentAge:n,startAge:age,group:ev.group});
+    }
+  });
+
+  // テーブル上のイベントチェックボックスUI
+  const tblCbWrap=document.createElement('div');
+  tblCbWrap.style.cssText='display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;padding:8px 10px;background:#fff8f8;border:1px solid #fecaca;border-radius:8px';
+  if(simEvents.length>0){
+    const tblCbTitle=document.createElement('div');tblCbTitle.style.cssText='width:100%;font-size:11px;font-weight:600;color:#991b1b;margin-bottom:4px';
+    tblCbTitle.textContent='📋 表示・有効化するイベント（チェックでON/OFF）';tblCbWrap.appendChild(tblCbTitle);
+    // グループ単位で表示
+    const groups={};
+    simEvents.forEach(function(ev){const g=ev.group||'その他';if(!groups[g])groups[g]=[];groups[g].push(ev);});
+    Object.keys(groups).forEach(function(gName){
+      const gEvs=groups[gName];
+      const gWrap=document.createElement('div');gWrap.style.cssText='background:#fff;border:1.5px solid #e0e7ff;border-radius:6px;padding:6px 8px;min-width:140px';
+      // グループチェック
+      const gRow=document.createElement('div');gRow.style.cssText='display:flex;align-items:center;gap:4px;margin-bottom:4px';
+      const gCb=document.createElement('input');gCb.type='checkbox';gCb.style.cssText='width:14px;height:14px;cursor:pointer';
+      gCb.checked=gEvs.some(e=>e.enabled!==false);
+      const gLbl=document.createElement('span');gLbl.style.cssText='font-size:12px;font-weight:700;color:#1e40af';gLbl.textContent=gName;
+      gRow.appendChild(gCb);gRow.appendChild(gLbl);gWrap.appendChild(gRow);
+      // 個別チェック
+      gEvs.forEach(function(ev){
+        const eRow=document.createElement('div');eRow.style.cssText='display:flex;align-items:center;gap:4px;padding-left:8px';
+        const eCb=document.createElement('input');eCb.type='checkbox';eCb.style.cssText='width:12px;height:12px;cursor:pointer';
+        eCb.checked=ev.enabled!==false;
+        eCb.addEventListener('change',function(){
+          ev.enabled=eCb.checked;
+          gCb.checked=gEvs.some(e=>e.enabled!==false);
+          renderEvents();runSim();
+        });
+        const eLbl=document.createElement('span');eLbl.style.cssText='font-size:11px;color:'+(ev.isIncome?'#0369a1':'#555');eLbl.textContent=(ev.isIncome?'💰 ':'💸 ')+ev.label;
+        eRow.appendChild(eCb);eRow.appendChild(eLbl);gWrap.appendChild(eRow);
+      });
+      gCb.addEventListener('change',function(){
+        gEvs.forEach(function(ev){ev.enabled=gCb.checked;});
+        gWrap.querySelectorAll('input[type=checkbox]').forEach(function(cb,i){if(i>0)cb.checked=gCb.checked;});
+        renderEvents();runSim();
+      });
+      tblCbWrap.appendChild(gWrap);
+    });
+    tblWrap.appendChild(tblCbWrap);
+  }
+
+  // 列順: 年齢・投資信託・元本・運用益・各イベント・現金(比較)・現金・総資産・切崩
+  const baseCols=activeEvents.length>0?['年齢','投資','元本','運用益','現金(比較)']:['年齢','投資','元本','運用益'];
+  const afterCols=['現金','総資産','切崩年額','切崩月額'];
+  const activeGroups={};
+  activeEvents.forEach(function(ev){const g=ev.group||'その他';if(!activeGroups[g])activeGroups[g]=[];activeGroups[g].push(ev);});
+
+  // 2段ヘッダー用にtheadを作り直す
+  const thead2=document.createElement('thead');
+
+  // 上段: ベース列 + グループ名 + 後続列
+  const htr1=document.createElement('tr');htr1.className='modal-thead-row';
+  baseCols.forEach(function(h){const th=document.createElement('th');th.textContent=h;th.style.cssText='padding:4px 5px;text-align:right;font-weight:600;font-size:10px;color:#888';if(h==='年齢')th.style.textAlign='left';th.rowSpan=2;htr1.appendChild(th);});
+  Object.keys(activeGroups).forEach(function(gName){
+    const evs=activeGroups[gName];
+    const th=document.createElement('th');th.colSpan=evs.length;
+    th.style.cssText='padding:4px 5px;text-align:center;font-weight:700;font-size:11px;color:#991b1b;background:#fff8f8;white-space:nowrap;border-left:2px solid #fca5a5;border-right:2px solid #fca5a5;border-top:2px solid #fca5a5;border-radius:4px 4px 0 0';
+    const tblPatName=activeGroups[gName][0]&&activeGroups[gName][0].patternName?activeGroups[gName][0].patternName:null;
+    th.textContent=gName+(tblPatName?' ['+tblPatName+']':'');htr1.appendChild(th);
+  });
+  afterCols.forEach(function(h){const th=document.createElement('th');th.textContent=h;th.style.cssText='padding:4px 5px;text-align:right;font-weight:600;font-size:10px;color:#888';th.rowSpan=2;htr1.appendChild(th);});
+  thead2.appendChild(htr1);
+
+  // 下段: 各イベント名
+  const htr2=document.createElement('tr');htr2.className='modal-thead-row';
+  Object.keys(activeGroups).forEach(function(gName){
+    activeGroups[gName].forEach(function(ev){
+      const th=document.createElement('th');
+      th.textContent=ev.label;th.style.cssText='padding:3px 5px;text-align:right;font-weight:600;font-size:10px;color:#991b1b;white-space:nowrap;background:#fff8f8';
+      htr2.appendChild(th);
+    });
+  });
+  thead2.appendChild(htr2);
+
+  tbl.innerHTML='';
+  tbl.appendChild(thead2);
+  thead.appendChild(htr);tbl.appendChild(thead);
+  const tbody=document.createElement('tbody');
+  const tableStep=parseInt(_savedStep)||5;
+  const showAges=new Set();
+  years.forEach(function(y){if(y.age%tableStep===0||y.age===retireAge||y.age===drawdownAge)showAges.add(y.age);});
+  years.filter(y=>showAges.has(y.age)).forEach(function(y){
+    const tr=document.createElement('tr');
+    if(y.isRetire&&y.age===drawdownAge)tr.className='sim-highlight sim-drawdown';
+    else if(y.isRetire)tr.className='sim-highlight';
+    else if(y.isDrawdown)tr.className='sim-drawdown';
+    const ageTd=document.createElement('td');
+    const agePrimary=document.createElement('div');agePrimary.style.cssText='font-weight:600';agePrimary.textContent=y.age+'歳';
+    if(y.isRetire){const b=document.createElement('span');b.className='sim-badge-retire';b.textContent='退職';agePrimary.appendChild(b);}
+    if(y.age===drawdownAge&&!y.isRetire){const b=document.createElement('span');b.className='sim-badge-draw';b.textContent='切崩';agePrimary.appendChild(b);}
+    ageTd.appendChild(agePrimary);
+    // 列順: 年齢・投資信託・元本・運用益・各イベント・現金(比較)・現金・総資産・切崩
+    const rowCells=[ageTd,mkTd(fmtMan(y.value),'#1d4ed8'),mkTd(fmtMan(y.principal),'#555'),mkTd(fmtMan(y.gain),'#166534')];
+    if(activeEvents.length>0) rowCells.push(mkTd(fmtMan(y.cashNoEvent||0),'#aaa'));
+    Object.keys(activeGroups).forEach(function(gName){
+      // このグループのcontextAge情報を探す
+      const ctx=contextAges.find(function(c){return c.group===gName;});
+      activeGroups[gName].forEach(function(ev,ei){
+        const rawVal=y.eventCostByEvId&&y.eventCostByEvId[ev.id]?y.eventCostByEvId[ev.id]:0;
+        const c=Math.abs(rawVal);
+        const isEvInc=ev.isIncome===true;
+        const td=document.createElement('td');
+        td.style.cssText='padding:5px 6px;text-align:right;white-space:nowrap;color:'+(isEvInc?'#166534':'#991b1b');
+        if(ei===0) td.style.borderLeft='2px solid #fecaca';
+        if(ei===activeGroups[gName].length-1) td.style.borderRight='2px solid #fecaca';
+        // 先頭列にサブ年齢を表示
+        if(ei===0&&ctx){
+          let subAge=null;
+          if(ctx.type==='child'){subAge=y.age-ctx.birthAge;if(subAge<0||subAge>30)subAge=null;}
+          else if(ctx.type==='parent'){subAge=ctx.currentAge+(y.age-age);if(subAge>105)subAge=null;}
+          else if(ctx.type==='pet'){subAge=ctx.currentAge+(y.age-age);if(subAge<0||subAge>18)subAge=null;}
+          if(subAge!==null){
+            const ageSub=document.createElement('div');
+            ageSub.style.cssText='font-size:9px;color:#6366f1;font-weight:600;text-align:left;margin-bottom:1px';
+            ageSub.textContent=ctx.label+' '+Math.round(subAge)+'歳';
+            td.appendChild(ageSub);
+          }
+        }
+        const valDiv=document.createElement('div');valDiv.textContent=c>0?(isEvInc?'+':'-')+fmtMan(c):'—';
+        td.appendChild(valDiv);
+        rowCells.push(td);
+      });
+    });
+    const cashTd=mkTd(fmtMan(y.cash||0),y.cash<0?'#991b1b':'#d97706');
+    if(y.cash<0) cashTd.style.fontWeight='700';
+    rowCells.push(cashTd);
+    rowCells.push(mkTd(fmtMan(y.total||y.value),'#1a1a1a'));
+    rowCells.push(mkTd(y.isDrawdown?fmtMan(y.drawAmt):'—','#d97706'));
+    rowCells.push(mkTd(y.isDrawdown?fmtMan(y.drawMonthly):'—','#d97706'));
+    rowCells.forEach(function(td){tr.appendChild(td);});
+    tbody.appendChild(tr);
+  });
+  tbl.appendChild(tbody);tblWrap.appendChild(tbl);result.appendChild(tblWrap);
+}
+
+// ===== Googleログイン =====
+function googleLogin(){
+  const st=document.getElementById('login-status');
+  st.className='status-bar loading';st.textContent='Google\u306b\u30ed\u30b0\u30a4\u30f3\u4e2d...';st.style.display='block';
+  if(typeof google==='undefined'||!google.accounts){
+    st.className='status-bar err';st.textContent='Google\u30e9\u30a4\u30d6\u30e9\u30ea\u8aad\u307f\u8fbc\u307f\u4e2d\u3002\u5c11\u3057\u5f85\u3063\u3066\u304b\u3089\u518d\u8a66\u884c\u3057\u3066\u304f\u3060\u3055\u3044\u3002';return;
+  }
+  google.accounts.oauth2.initTokenClient({
+    client_id:CLIENT_ID,scope:SCOPES,
+    callback:function(res){
+      if(res.error){st.className='status-bar err';st.textContent='\u30a8\u30e9\u30fc: '+res.error;return;}
+      accessToken=res.access_token;
+      sessionStorage.setItem('gdrive_token',accessToken);
+      startApp(true);
+    }
+  }).requestAccessToken({prompt:'consent'});
+}
+
+// アプリ開始
+function startApp(loggedIn){
+  showMainApp();
+  const sub=document.getElementById('subtitle');
+  sub.textContent=loggedIn
+    ?'\u30af\u30e9\u30a6\u30c9\u540c\u671f\u3042\u308a\uff1a\u30d7\u30ed\u30d5\u30a1\u30a4\u30eb\u306f\u7aef\u672b\u9593\u3067\u5171\u6709\u3055\u308c\u307e\u3059'
+    :'\u30ed\u30b0\u30a4\u30f3\u306a\u3057\uff1a\u3053\u306e\u7aef\u672b\u306b\u306e\u307f\u4fdd\u5b58\u3055\u308c\u307e\u3059';
+  renderSim();
+}
+
+document.getElementById('google-login-btn').addEventListener('click',googleLogin);
+document.getElementById('skip-login-btn').addEventListener('click',function(){startApp(false);});
+
+// 起動時：トークンがあれば自動で続行
+const _storedToken=sessionStorage.getItem('gdrive_token');
+if(_storedToken){accessToken=_storedToken;startApp(true);}
+else showLoginScreen();
+</script>
+</body>
+</html>
