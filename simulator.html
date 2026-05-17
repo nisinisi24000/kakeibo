@@ -7,9 +7,6 @@
 <meta name="apple-mobile-web-app-title" content="資産シミュレーター">
 <meta name="theme-color" content="#0f3d3a">
 <title>資産シミュレーター</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#f4f1ea;
@@ -36,7 +33,7 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
 body{
-  font-family:'Zen Kaku Gothic New',-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;
+  font-family:'Meiryo','メイリオ','Hiragino Sans','ヒラギノ角ゴシック',-apple-system,BlinkMacSystemFont,sans-serif;
   font-size:14px;color:var(--ink);
   background:var(--bg);
   background-image:
@@ -57,7 +54,7 @@ body{
   color:var(--accent);text-transform:uppercase;margin-bottom:6px;
 }
 h1{
-  font-family:'Fraunces',serif;font-size:30px;font-weight:600;
+  font-size:27px;font-weight:700;
   letter-spacing:-.01em;line-height:1.1;color:var(--primary);margin-bottom:5px;
 }
 .subtitle{font-size:12.5px;color:var(--ink-soft)}
@@ -71,8 +68,7 @@ h1{
 /* ===== セクション見出し ===== */
 .sim-wrap{display:flex;flex-direction:column}
 .sim-section-title{
-  font-family:'Fraunces',serif;
-  font-size:17px;font-weight:600;color:var(--primary);
+  font-size:16px;font-weight:700;color:var(--primary);
   margin:26px 0 12px;padding:0;border:none;
   display:flex;align-items:center;gap:9px;letter-spacing:-.005em;
 }
@@ -137,7 +133,7 @@ input[type=number].sim-input{font-variant-numeric:tabular-nums}
   letter-spacing:.04em;order:1;
 }
 .sim-card-val{
-  font-family:'Fraunces',serif;font-size:26px;font-weight:600;
+  font-size:25px;font-weight:700;
   letter-spacing:-.01em;order:2;font-variant-numeric:tabular-nums;line-height:1.15;
 }
 .sim-card-sub{font-size:10.5px;color:var(--ink-faint);order:3}
